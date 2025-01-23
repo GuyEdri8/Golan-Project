@@ -55,6 +55,11 @@ export const projectEditors = pgTable('project_editors', {
 
 // Relations
 
+export const departments = pgTable('departments', {
+  id: serial('id').primaryKey(),
+  department_name: varchar('department_name').notNull(),
+  project_type: varchar('project_type').notNull(),
+});
 
 
 export const projects = pgTable('projects', {
@@ -67,7 +72,7 @@ export const projects = pgTable('projects', {
   end_date: timestamp('end_date'),
   status: varchar('status').notNull(),
   priority: integer('priority'),
-  department: varchar('department'),
+  department_id: integer('department_id').notNull().references(() => departments.id),  // New column linking to departments
   contact_email: varchar('contact_email'),
   contact_phone: varchar('contact_phone'),
   created_at: timestamp('created_at').defaultNow(),
@@ -100,6 +105,24 @@ export const tickets = pgTable('tickets', {
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow().$onUpdate(() => new Date()),
 })
+
+// In your schema.ts
+export const projectFiles = pgTable('project_files', {
+  id: serial('id').primaryKey(),
+  project_id: integer('project_id')
+    .notNull()
+    .references(() => projects.id, { onDelete: 'cascade' }),
+  file_name: varchar('file_name').notNull(),
+  file_path: text('file_path').notNull(),
+  file_size: integer('file_size').notNull(), // in bytes
+  file_type: varchar('file_type').notNull(), // mime type
+  uploaded_by: integer('uploaded_by')
+    .notNull()
+    .references(() => users.id),
+  upload_date: timestamp('upload_date').defaultNow(),
+  description: text('description'),
+  is_active: boolean('is_active').default(true)
+});
 
 
 export const settlementRelation = relations(settlements, ({ many }) => ({
@@ -138,13 +161,18 @@ export const ticketsRelations = relations(tickets,
         })
     })
 )
-export const projectsRelations = relations(projects, ({ one, many }) => ({
+// Relations
+export const projectsRelations = relations(projects, ({ one }) => ({
+  department: one(departments, {
+    fields: [projects.department_id],
+    references: [departments.id]
+  }),
   owner: one(users, {
     fields: [projects.owner_id],
     references: [users.id],
     relationName: 'project_owner'
   }),
-  editors: many(projectEditors)
+  // editors: many(projectEditors)
 }));
 // // יחסים מטבלת projects
 // export const projectsRelations = relations(projects, ({ many }) => ({
