@@ -1,9 +1,9 @@
 // /pages/api/projects.ts
-import { getProjectsByDepartment,getProjectsByDepartmentAndSettlement } from '@/lib/queries/getProjectsByDepartment';
+import { getProjectsByDepartmentAndSettlement } from '@/lib/queries/getProjectsByDepartment';
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(req: NextRequest, res: NextResponse) {
-    const url = new URL(req.url);
+export async function GET(request: NextRequest) {
+    const url = new URL(request.url);
     const searchParams = new URLSearchParams(url.search);
     const departmentId = searchParams.get('departmentId')
 
