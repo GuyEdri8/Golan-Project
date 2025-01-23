@@ -5,36 +5,15 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1732977681965,
-      "tag": "0000_premium_scarlet_witch",
+      "when": 1737306985853,
+      "tag": "0000_charming_the_renegades",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1733086998685,
-      "tag": "0001_common_spirit",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1733308410828,
-      "tag": "0002_lumpy_dragon_lord",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1736275624469,
-      "tag": "0003_brave_bruce_banner",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1736701975902,
-      "tag": "0004_natural_morg",
+      "when": 1737486817763,
+      "tag": "0001_light_warlock",
       "breakpoints": true
     }
   ]

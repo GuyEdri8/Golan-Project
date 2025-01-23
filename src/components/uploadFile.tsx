@@ -1,3 +1,4 @@
+'use client'
 import React, { useState } from "react";
 
 type FileUploaderProps = {
@@ -69,7 +70,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onSuccess, onError }) => {
     } finally {
       setIsUploading(false);
     }
-  };
+  };  
 
   return (
     <div>

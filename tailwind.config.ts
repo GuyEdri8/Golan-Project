@@ -10,7 +10,7 @@ const config: Config = {
   theme: {
   	extend: {
   		backgroundImage: {
-  			'home-img': "url('/images/home-image.jpg')"
+  			'home-img': "url('/images/home-image.jpg')",
   		},
   		colors: {
   			background: 'hsl(var(--background))',
@@ -70,7 +70,7 @@ const config: Config = {
   			sm: 'calc(var(--radius) - 4px)'
   		},
   		keyframes: {
-  			'appear': {
+  			appear: {
   				from: {
   					opacity: '0'
   				},
@@ -78,18 +78,36 @@ const config: Config = {
   					opacity: '1'
   				}
   			},
-  			'slide': {
+  			slide: {
   				from: {
   					transform: 'translateX(100%)'
   				},
   				to: {
   					transform: 'translateX(0%)'
   				}
+  			},
+  			'accordion-down': {
+  				from: {
+  					height: '0'
+  				},
+  				to: {
+  					height: 'var(--radix-accordion-content-height)'
+  				}
+  			},
+  			'accordion-up': {
+  				from: {
+  					height: 'var(--radix-accordion-content-height)'
+  				},
+  				to: {
+  					height: '0'
+  				}
   			}
   		},
   		animation: {
   			appear: 'appear 1s ease-in-out',
-  			slide: 'slide 750ms ease-in-out'
+  			slide: 'slide 750ms ease-in-out',
+  			'accordion-down': 'accordion-down 0.2s ease-out',
+  			'accordion-up': 'accordion-up 0.2s ease-out'
   		}
   	}
   },
