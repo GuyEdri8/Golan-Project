@@ -18,7 +18,7 @@ export default async function ProjectHeader({
     const project = await getProject(parseInt(project_id))
     // if (!project) return null
 
-    const budgetCurrency = formatCurrency(project.budget)
+    const budgetCurrency = formatCurrency(project.budget ? parseInt(project.budget) : null)
     const startDate = format(new Date(project.start_date), 'dd/MM/yyyy')
     const EndDate = (project.end_date  && format(new Date(project.end_date), 'dd/MM/yyyy') )
 
@@ -68,7 +68,7 @@ export default async function ProjectHeader({
     )
   }
 
-  export const formatCurrency = (amount, currency = 'ILS', locale = 'he-IL') => {
+  export const formatCurrency = (amount: number | null | undefined, currency = 'ILS', locale = 'he-IL') => {
     if (amount === null || amount === undefined) return '';
     
     return new Intl.NumberFormat(locale, {
