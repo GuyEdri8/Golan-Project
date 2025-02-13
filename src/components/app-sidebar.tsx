@@ -1,4 +1,4 @@
-import { LayoutDashboard, FolderKanban, Users, Calendar, Settings, LogOut, Building2 } from 'lucide-react'
+import { LayoutDashboard, FolderKanban, Users, DollarSign, Settings, LogOut, Building2 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   Sidebar,
@@ -35,9 +35,9 @@ const items = [
     icon: Users  ,
   },
   {
-    title: "לוח זמנים",
-    url: "/cities",
-    icon: Calendar  ,
+    title: "מקורות מימון",
+    url: "/fundingsources",
+    icon: DollarSign  ,
   },
   {
     title: "ישובים",

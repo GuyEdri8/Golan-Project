@@ -220,9 +220,9 @@ export default function Home({
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl text-blue-800">עמידה ביעדים (לפי ג'ירה)</CardTitle>
+            <CardTitle className="text-xl text-blue-800">מקורות מימון מובילים</CardTitle>
             <div className="text-sm text-gray-600">
-              זמן ממוצע לפרויקט (בדקות)
+              מקורות המימון המובילים בפרויקטים פעילים / בתכנון
             </div>
           </CardHeader>
           <CardContent>
