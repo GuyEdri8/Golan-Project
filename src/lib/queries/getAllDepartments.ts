@@ -19,6 +19,5 @@ export async function getAllDepartmentsWithCount() {
         .from(departments)
         .leftJoin(projects, eq(departments.id, projects.department_id))
         .groupBy(departments.id, departments.department_name, departments.project_type)
-
     return departmentArr
 }

@@ -60,20 +60,20 @@ const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
   return itemRank.passed
 }
 
-const fuzzySort: SortingFn<any> = (rowA, rowB, columnId) => {
-  let dir = 0
+// const fuzzySort: SortingFn<any> = (rowA, rowB, columnId) => {
+//   let dir = 0
 
-  // Only sort by rank if the column has ranking information
-  if (rowA.columnFiltersMeta[columnId]) {
-    dir = compareItems(
-      rowA.columnFiltersMeta[columnId]?.itemRank!,
-      rowB.columnFiltersMeta[columnId]?.itemRank!
-    )
-  }
+//   // Only sort by rank if the column has ranking information
+//   if (rowA.columnFiltersMeta[columnId]) {
+//     dir = compareItems(
+//       rowA.columnFiltersMeta[columnId]?.itemRank!,
+//       rowB.columnFiltersMeta[columnId]?.itemRank!
+//     )
+//   }
 
-  // Provide an alphanumeric fallback for when the item ranks are equal
-  return dir === 0 ? sortingFns.alphanumeric(rowA, rowB, columnId) : dir
-}
+//   // Provide an alphanumeric fallback for when the item ranks are equal
+//   return dir === 0 ? sortingFns.alphanumeric(rowA, rowB, columnId) : dir
+// }
 function DebouncedInput({
   value: initialValue,
   onChange,
@@ -107,9 +107,10 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   setSelected,
-  
-}: DataTableProps<TData, TValue> & { setSelected: SetStateAction<any> }) {
-  const [globalFilter, setGlobalFilter] = React.useState('')
+  setGlobalSerc,
+  GlobalSerc
+}: DataTableProps<TData, TValue> & { setSelected?: SetStateAction<any>, setGlobalSerc?: SetStateAction<any>, GlobalSerc: string }) {
+  // const [globalFilter, setGlobalFilter] = React.useState('')
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [rowSelection, setRowSelection] = useState({})
@@ -133,7 +134,7 @@ export function DataTable<TData, TValue>({
       columnFilters,
       sorting,
       rowSelection,
-      globalFilter
+      globalFilter:GlobalSerc,
     },
     initialState: {
       pagination: {
@@ -159,21 +160,12 @@ export function DataTable<TData, TValue>({
   return (
     <>
       <div className="my-5">
-        {/* <Input
-          placeholder={label}
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-          onChange={(event) => {
-            return table.getColumn('name')?.setFilterValue(event.target.value)
-          }
-        }
-        className="max-w-sm"
-        /> */}
-        <DebouncedInput
-          value={globalFilter ?? ''}
-          onChange={value => setGlobalFilter(String(value))}
+        {/* <DebouncedInput
+          value={GlobalSerc ?? ''}
+          onChange={value => setGlobalSerc(String(value))}
           className="p-2 font-lg shadow border border-block"
           placeholder={"חפש " + label}
-        />
+        /> */}
       </div>
     <div className="rounded-md border">
       <Table>

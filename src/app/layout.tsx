@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
+import Providers from './providers'
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -34,20 +35,22 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-                  <ThemeProvider
+        <Providers>
+          <ThemeProvider
             attribute="class"
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
           >
-                <SidebarProvider>
-                  <AppSidebar />
-                  <main className="w-full">
-                    <SidebarTrigger  />
-                    {children}
-                  </main>
-                </SidebarProvider>
+            <SidebarProvider>
+              <AppSidebar />
+              <main className="w-full">
+                <SidebarTrigger  />
+                {children}
+              </main>
+            </SidebarProvider>
           </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

@@ -1,14 +1,10 @@
 import { db } from '@/db'
 import { projects, departments, users } from '@/db/schema'
 import { eq } from 'drizzle-orm'
-import type {selectProjecSchemaType} from '@/zod-schemas/projects'
 
-export type getProjectProp = selectProjecSchemaType & {     department_name: string;
-    owner_first_name: string;
-    owner_last_name:string;
-}
-export async function getProject(project_id: number): Promise<getProjectProp> {
-    const [project] = await db
+
+export async function getProject(project_id: number, tx?: any) {
+    const [project] = await (tx || db)
       .select({
         id: projects.id,
         project_name: projects.project_name,
@@ -17,8 +13,9 @@ export async function getProject(project_id: number): Promise<getProjectProp> {
         start_date: projects.start_date,
         end_date: projects.end_date,
         status: projects.status,
-        priority: projects.priority,
+        priority: projects.priority,  
         department_name: departments.department_name,
+        owner_id: projects.owner_id,
         owner_first_name: users.first_name,
         owner_last_name: users.last_name,
         contact_email: projects.contact_email,
@@ -32,5 +29,17 @@ export async function getProject(project_id: number): Promise<getProjectProp> {
       .where(eq(projects.id, project_id))
       .limit(1);
   
+    if (!project) {
+        throw new Error(`Project with ID ${project_id} not found`);
+    }
+  
     return project;
-  } 
+} 
+
+export async function deleteProject(project_id: number, tx?: any) {
+    const result = await (tx || db)
+      .delete(projects)
+      .where(eq(projects.id, project_id))
+    return result;
+}
+

@@ -5,10 +5,10 @@ import { eq } from 'drizzle-orm';
 export async function getAllUsersProject(projectId: number) {
     const usersArr = await db
     .select({
-        first_name: users.first_name,
-        last_name: users.last_name,
+        user: users,
         joined_date: projectEditors.added_at,
         added_by: projectEditors.added_by
+
     })
     .from(projectEditors)
     .where(eq(projectEditors.project_id, projectId))

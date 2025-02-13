@@ -24,7 +24,7 @@ export default async function SettlementStatisicsFormPage({
                     </>
                 )
             }
-            console.log(settle_statisitcs)
+            //@type
             return <CityPage settlement_statistics={settle_statisitcs as any} settlement={settlement as any}/>
             // put customer form component
         } else {

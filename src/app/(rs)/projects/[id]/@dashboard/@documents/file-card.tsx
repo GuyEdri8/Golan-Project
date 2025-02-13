@@ -37,7 +37,7 @@ const FileCard: FC<FileCardProps> = ({ file_name, file_content, file_size, file_
         <h3 className="mt-2 font-semibold text-sm truncate w-full text-center">{file_name}</h3>
         <p className="text-sm text-gray-500">{formatFileSize(file_size)}</p>
       </CardContent>
-      <CardFooter className="justify-center">
+      <CardFooter className="border-t px-6 py-4 justify-center">
         <Button asChild variant="outline">
           <a href={file_url} download={file_name} target="_blank" rel="noopener noreferrer">
             Download
