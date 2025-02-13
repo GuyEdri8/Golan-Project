@@ -12,14 +12,15 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-
+import { ModeToggle } from "@/components/ModeToggle"
 import { getKindeServerSession, LogoutLink } from "@kinde-oss/kinde-auth-nextjs/server"
 import { Button } from "./ui/button"
 import Link from "next/link"
+import { useTheme } from 'next-themes'
 // Menu items.
 const items = [
   {
-    title: "דשבורד",
+    title: "דף הבית",
     url: "/home",
     icon: LayoutDashboard ,
   },
@@ -34,12 +35,12 @@ const items = [
     icon: Users  ,
   },
   {
-    title: "לוח שנה",
+    title: "לוח זמנים",
     url: "/cities",
     icon: Calendar  ,
   },
   {
-    title: "ערים",
+    title: "ישובים",
     url: "/cities",
     icon: Building2   ,
   },
@@ -52,9 +53,12 @@ export async function  AppSidebar() {
     <Sidebar side="right">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarHeader>
-            <h2 className="text-2xl font-bold text-green-600">לוח בקרה</h2>
-          </SidebarHeader>
+        <SidebarHeader className="flex flex-row items-center justify-between gap-4 w-full px-4 rtl:flex-row">
+          <h2 className="text-2xl font-bold text-blue-900 order-2 rtl:order-1">מערכת פתרו"ן</h2>
+          <div className="order-1 rtl:order-2">
+            <ModeToggle />
+          </div>
+        </SidebarHeader>
           <SidebarGroupContent>
             <SidebarMenu className="mt-10">
             {items.map((item) => {
