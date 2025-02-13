@@ -30,7 +30,7 @@ const items = [
     icon: FolderKanban ,
   },
   {
-    title: "צוותים",
+    title: "משתמשים",
     url: "/users",
     icon: Users  ,
   },

@@ -1,4 +1,3 @@
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { getFilesByProject } from "@/lib/queries/getProjectFiles";
 import FileCard from "./file-card";
 // import { getAllUsersProject } from "@/lib/queries/getAllUsersProject";
@@ -15,8 +14,6 @@ export default async function ProjectHeader({
         return <p>Waiting for ID</p>
         
     const files = await getFilesByProject(project_id);
-    console.log(files);
-    // console.log(users);
     // // if (!searchParams.project_id) return null
     return (
         <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

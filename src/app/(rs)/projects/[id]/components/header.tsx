@@ -2,11 +2,13 @@ import { Button } from '@/components/ui/button'
 import { ArrowRight, Edit, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import type { getProjectProp } from '@/lib/queries/projects/getProject'
+import { useProject } from '@/components/ProjectContext'
 type Props = {
   project: getProjectProp
 }
 
 export function Header({project} : Props) {
+  const { editMode } = useProject()
   return (
     <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
       <div>

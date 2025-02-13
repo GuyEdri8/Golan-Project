@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { ArrowRight, Edit, Trash2, Briefcase, Calendar, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from 'date-fns'
-
 export default async function ProjectHeader({
     params,
   }: {
@@ -31,16 +30,6 @@ export default async function ProjectHeader({
             חזרה לפרויקטים
             </Link>
             <h1 className="text-3xl font-bold text-gray-800">{project.project_name}</h1>
-        </div>
-        <div className="flex mt-4 sm:mt-0">
-            <Button variant="outline" className="ml-2">
-            <Edit className="ml-2 h-4 w-4" />
-            ערוך
-            </Button>
-            <Button variant="destructive">
-            <Trash2 className="ml-2 h-4 w-4" />
-            מחק
-            </Button>
         </div>
         </header>
         <section className="bg-white rounded-lg shadow p-6 flex flex-wrap justify-between items-center gap-4">

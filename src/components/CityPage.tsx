@@ -47,7 +47,7 @@ export default function StatisticsDashboard({ settlement, settlement_statistics}
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: "url('/placeholder.svg?height=300&width=1200')",
+            backgroundImage: `url('/images/${settlement.name}/photo_1.jpg?height=300&width=1200')`,
           }}
         >
           <div className="absolute inset-0 bg-black/40" />
@@ -110,7 +110,6 @@ export default function StatisticsDashboard({ settlement, settlement_statistics}
             <TabsTrigger value="2027">2027</TabsTrigger>
             <TabsTrigger value="2028">2028</TabsTrigger>
           </TabsList>
-          <FileUploader onSuccess={handleSuccess} onError={handleError} />
           <TabsContent value="2024">
             <Card>
               <CardContent className="space-y-2 pt-6">
