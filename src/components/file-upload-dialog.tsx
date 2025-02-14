@@ -129,10 +129,11 @@ export default function FileUploadDialog({ project_id } : {project_id : number})
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Upload Files</DialogTitle>
-          <DialogDescription>Upload PDF, XLS, or DOC files here. Click the button to select files.</DialogDescription>
+          <DialogTitle className="text-center">העלאת מסמך</DialogTitle>
+          <DialogDescription>העלאת קובץ PDF, XLS, או DOC. לחצו על הכפתור לבחירת קובץ.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
+
           <input
             type="file"
             ref={fileInputRef}
@@ -142,8 +143,9 @@ export default function FileUploadDialog({ project_id } : {project_id : number})
             accept=".pdf,.xls,.xlsx,.doc,.docx"
           />
           <Button onClick={() => fileInputRef.current?.click()} variant="secondary" className="w-full">
-            Select File(s)
+            בחירת קובץ
           </Button>
+
           {files.length > 0 && (
             <div className="space-y-2 max-h-[200px] overflow-y-auto">
               {files.map((file, index) => (
@@ -162,11 +164,12 @@ export default function FileUploadDialog({ project_id } : {project_id : number})
         </div>
         <DialogFooter>
           <Button onClick={handleUpload} disabled={files.length === 0}>
-            Upload
+            העלאה
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
   )
 }
 

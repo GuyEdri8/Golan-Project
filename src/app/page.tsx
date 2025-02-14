@@ -1,13 +1,10 @@
-import { redirect } from 'next/navigation'
 
 
 
-export default async function Home() {
-  // const token = await getToken();
-  redirect('/home')
+export default function Home() {
   return (
-    <>
+    <main>
       <h1>דף הבית</h1>
-    </>
+    </main>
   );
 }

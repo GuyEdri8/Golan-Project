@@ -8,12 +8,12 @@ import {
     BlobSASPermissions 
 } from '@azure/storage-blob'
 
-export async function getFilesByProject(project_id: string) {
+export async function getFilesByProject(project_id: string, tx?: any) {
     if (!project_id) {
         throw new Error('Department ID is required')
     }
 
-    const projectsArr = await db
+    const projectsArr = await (tx || db)
         .select({
             file_name: projectFiles.file_name,
             file_size: projectFiles.file_size,

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { BlobServiceClient, StorageSharedKeyCredential, BlobSASPermissions, generateBlobSASQueryParameters, BlobSASSignatureValues } from "@azure/storage-blob";
+import { BlobServiceClient } from "@azure/storage-blob";
 import { insertProjectFile, NewProjectFile } from "@/lib/queries/insertProjectFile";
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { deleteFileByURL } from "@/lib/queries/files/deleteFile";
+import { getUserByKindId } from "@/lib/queries/users/getUser";
 
 const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING;
 const CONTAINER_NAME = process.env.AZURE_STORAGE_CONTAINER_NAME || "golanproject";
@@ -17,16 +20,7 @@ if (!AZURE_STORAGE_CONNECTION_STRING) {
 
 // Get a block blob client
 // // Allowed file types
-const ALLOWED_FILE_TYPES = [
-  "application/pdf",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-];
 
-// הוספת הגדרת ה-credentials בתחילת הקובץ
-const account = process.env.AZURE_STORAGE_ACCOUNT || "";
-const accountKey = process.env.AZURE_STORAGE_ACCOUNT_KEY || "";
-const sharedKeyCredential = new StorageSharedKeyCredential(account, accountKey);
 
 // export async function generateSASUrl(fileName: string): Promise<string> {
 //   const containerClient = blobServiceClient.getContainerClient(CONTAINER_NAME);
@@ -62,6 +56,15 @@ export async function PUT(req: NextRequest, res: NextResponse) {
       'application/msword',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     ];
+    const { getUser } = getKindeServerSession();
+    const kindeUser = await getUser();
+    if(!kindeUser?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const user = await getUserByKindId(kindeUser.id);
+    if(!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
 
     if (!fileName || !fileContent || !fileType || typeof fileSize !== "number") {
       return NextResponse.json({ error: "Invalid request payload." }, { status: 400 });
@@ -91,21 +94,6 @@ export async function PUT(req: NextRequest, res: NextResponse) {
       }
     });
 
-    // const sasOptions: BlobSASSignatureValues = {
-    //   containerName: CONTAINER_NAME,
-    //   blobName: `project_${project_id}/${fileName}`,
-    //   permissions: BlobSASPermissions.parse("r"),
-    //   startsOn: new Date(),
-    //   expiresOn: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // תוקף לשנה
-    //   contentDisposition: `inline; filename="${encodeURIComponent(fileName)}"`,
-    //   contentType: fileType,
-    // };
-
-    // const sasToken = generateBlobSASQueryParameters(
-    //   sasOptions,
-    //   sharedKeyCredential
-    // ).toString();
-
 
     const fileInsert: NewProjectFile = {
       project_id: project_id,
@@ -113,9 +101,10 @@ export async function PUT(req: NextRequest, res: NextResponse) {
       file_path: blockBlobClient.url,
       file_size: fileSize,
       file_type: fileType,
-      uploaded_by: 1,
+      uploaded_by: user.id,
     }
     
+
     await insertProjectFile(fileInsert)
     return NextResponse.json({ 
       message: "File uploaded successfully.",
@@ -126,3 +115,47 @@ export async function PUT(req: NextRequest, res: NextResponse) {
     return NextResponse.json({ error: "Internal server error." }, { status: 500 });
   }
 }
+
+
+export async function DELETE(req: NextRequest) {
+  const { fileName, project_id } = await req.json();
+  const { getUser } = getKindeServerSession();
+  const kindeUser = await getUser();
+  if(!kindeUser?.id) {
+
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const user = await getUserByKindId(kindeUser.id);
+  if(!user) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+  try {
+    await deleteFile(fileName, project_id)
+    return NextResponse.json({ message: "File deleted successfully." }, { status: 200 });
+  } catch (error) {
+    console.error("Error deleting file:", error);
+    return NextResponse.json({ error: "Internal server error." }, { status: 500 });
+  }
+}
+
+
+
+export async function deleteFile(fileName: string, project_id: number, tx?: any) {
+  try {
+    const blobServiceClient = BlobServiceClient.fromConnectionString(
+      AZURE_STORAGE_CONNECTION_STRING!
+    );
+
+
+  const containerClient = blobServiceClient.getContainerClient(CONTAINER_NAME);
+  const blockBlobClient = containerClient.getBlockBlobClient(`project_${project_id}/${fileName}`);
+  blockBlobClient.delete({
+    deleteSnapshots: "include"
+  });
+  await deleteFileByURL(blockBlobClient.url, tx)
+  } catch (error) {
+    throw new Error("Error deleting file:", error);
+  }
+
+}
+
