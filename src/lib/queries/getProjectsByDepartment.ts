@@ -1,8 +1,69 @@
 import { db } from '@/db'
 import { projects, users, settlements, projectSettlements } from '@/db/schema'
-import { eq, and, inArray } from 'drizzle-orm'
+import { eq, count, inArray } from 'drizzle-orm'
 import { sql } from 'drizzle-orm'
 import { validateProjectIds } from './projects/validateProjectIds'
+
+export async function getProjects(limit: number, offset: number) {
+
+    const projectsArr = await db
+    .select({
+            id: projects.id,
+            project_name: projects.project_name,
+            description: projects.description,
+            budget: projects.budget,
+            start_date: projects.start_date,
+            end_date: projects.end_date,
+            status: projects.status,
+            priority: projects.priority,
+            contact_email: projects.contact_email,
+            contact_phone: projects.contact_phone,
+            created_at: projects.created_at,
+            updated_at: projects.updated_at,
+        owner: {
+            firstName: users.first_name,
+            lastName: users.last_name,
+        },
+    })
+    .from(projects)
+    .leftJoin(users, eq(projects.owner_id, users.id))
+    .limit(limit)
+    .offset(offset)
+
+    // Get settlements separately for each project
+    const projectsWithSettlements = await Promise.all(
+        projectsArr.map(async (project) => {
+            const arrSettlements = await db
+                .select({
+                    settlement_id: settlements.settlement_id,
+                    name: settlements.name,
+                    is_main_settlement: projectSettlements.is_main_settlement,
+                    budget_allocation: projectSettlements.budget_allocation,
+                    specific_goals: projectSettlements.specific_goals,
+                    settlement_status: projectSettlements.settlement_status
+                })
+                .from(projectSettlements)
+                .leftJoin(settlements, eq(projectSettlements.settlement_id, settlements.settlement_id))
+                .where(eq(projectSettlements.project_id, project.id))
+
+            return {
+                ...project,
+                settlements: arrSettlements.length ? arrSettlements : []
+            }
+        })
+    )
+
+    return projectsWithSettlements
+}
+
+export async function getProjectsCount() {
+    const projectsArr = await db
+    .select({
+        count: count(),
+    })
+    .from(projects)
+    return projectsArr[0].count
+}
 
 export async function getProjectsByDepartment(departmentId: string) {
     if (!departmentId) {
@@ -36,7 +97,20 @@ export async function getProjectsCountByDepartment(departmentId: string) {
     return result[0].count
 }
 
-export async function getProjectsByDepartmentAndSettlement(departmentId: string) {
+export async function getProjectsByDepartmentAndSettlementCount(departmentId: string) {
+    if (!departmentId) {
+        throw new Error('Department ID is required')
+    }
+    const result = await db
+        .select({
+            count: sql<number>`count(*)::int`
+        })
+        .from(projects)
+        .where(eq(projects.department_id, departmentId))
+    return result[0].count
+}
+
+export async function getProjectsByDepartmentAndSettlement(departmentId: string, limit: number, offset: number) {
     if (!departmentId) {
         throw new Error('Department ID is required')
     }
@@ -75,6 +149,9 @@ export async function getProjectsByDepartmentAndSettlement(departmentId: string)
         .leftJoin(users, eq(projects.owner_id, users.id))
         .leftJoin(projectSettlements, eq(projects.id, projectSettlements.project_id))
         .leftJoin(settlements, eq(projectSettlements.settlement_id, settlements.settlement_id))
+        .limit(limit)
+        .offset(offset)
+
 
     // Group projects with their settlements
     const groupedProjects = projectsArr.reduce((acc, curr) => {
@@ -98,6 +175,7 @@ export async function getProjectsByDepartmentAndSettlement(departmentId: string)
 
     return Object.values(groupedProjects);
 }
+
 export async function getProjectsByIds(projectIds: number[]) {
     try {
         const validatedProjectIds = await validateProjectIds(projectIds);

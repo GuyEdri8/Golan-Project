@@ -1,10 +1,9 @@
 
-
-
+import Loading from "./loading"
 export default function Home() {
   return (
     <main>
-      <h1>דף הבית</h1>
+      <Loading />
     </main>
   );
 }

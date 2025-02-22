@@ -13,21 +13,27 @@ import useDebounce from '@/hooks/useDebounce'
 import { Skeleton } from "@/components/ui/skeleton"
 import GoogleSearchAutocomplete from './projectAutoComplete';
 import { Avatar, AvatarImage, AvatarFallback } from '@radix-ui/react-avatar'
-
+import DialogAddProject from './components/dialog-add-project'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import DepartmentItem from './components/departmentItem'
 import FundingItem from './components/fundingItem'
 import SkeletonItem from './components/skeletonItem'
+import { Button } from '@/components/ui/button'
+import { useWindowSize } from '@/hooks/useWindow'
+import { PaginationDemo } from '@/components/pagenation-component'
+import { useMediaQuery } from "@/hooks/useMediaQuery"
+import { SelectDepartment } from './components/selectdepartment'
 type Props = {
   prop_departments: any[]
   prop_sort_by: ViewType
   prop_department_id?: number,
   prop_funder_id?: number,
   projects?: any[],
+  count: number
 }
 type ViewType = "מחלקות" | "מקורות מימון" 
 
-export default function Home({ projects, prop_sort_by, prop_department_id, prop_funder_id, prop_departments }: Props) {
+export default function Home({ projects, prop_sort_by, prop_department_id, prop_funder_id, prop_departments, count }: Props) {
   const router = useRouter()
   const [selectedProjects, setSelectedProjects] = useState<any[]>(projects ?? [])
   const [selectDepartment, setSelectedDepartment] = useState<number | null>((prop_sort_by === 'מחלקות') ? prop_department_id ?? null : prop_funder_id ?? null);
@@ -36,6 +42,9 @@ export default function Home({ projects, prop_sort_by, prop_department_id, prop_
   const [loading, setLoading] = useState(false)
   const [departments, setDepartments] = useState(prop_departments);
   const debouncedSearchTerm = useDebounce(searchDepartment, 500);
+  const isMobile = useMediaQuery("(max-width: 1024px)");
+  
+
   // Improved view change handler
   const handleViewChange = (value: ViewType) => {
     router.push(`?prop_sort_by=${value}`);
@@ -74,14 +83,15 @@ export default function Home({ projects, prop_sort_by, prop_department_id, prop_
   useEffect(() => {
     setSelectedProjects(projects ?? []);
   }, [projects])
+  console.log(selectedProjects)
   return (
     <motion.section 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className='h-screen grid grid-cols-3 bg-gray-50'
+      className='h-dvh grid grid-cols-1 md:grid-cols-3 bg-gray-50'
     >
-      <article className='departments flex flex-col h-full overflow-hidden p-4 gap-2 bg-white shadow-lg'>
+      <article className='departments  flex-col overflow-hidden md:p-4 px-4 gap-2 bg-white shadow-lg hidden lg:flex'>
         <div className='flex flex-row-reverse justify-between'>
           <div className="mb-6 text-right" dir="rtl">
           <Select value={currentView} onValueChange={handleViewChange}>
@@ -102,7 +112,6 @@ export default function Home({ projects, prop_sort_by, prop_department_id, prop_
           {currentView}
         </motion.h2>
         </div>
-        
         <div className='relative mb-4'>
           <Input 
             type="text" 
@@ -114,7 +123,7 @@ export default function Home({ projects, prop_sort_by, prop_department_id, prop_
           <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400' />
         </div>
 
-        <ScrollArea className='pr-2 text-right'> 
+        <ScrollArea className='pr-2 text-right flex-1'> 
           <AnimatePresence>
             {!departments && [...Array(5)].map((_, index) => (
               <motion.div
@@ -146,20 +155,31 @@ export default function Home({ projects, prop_sort_by, prop_department_id, prop_
         </ScrollArea>
       </article>
 
-      <article className='col-span-2 flex flex-col h-full overflow-hidden p-4 gap-2 bg-gray-100'>
-        <motion.h2 
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className='text-2xl font-bold text-gray-800 mb-4'
-        >
-          פרויקטים
-        </motion.h2>
-
+      <article className='col-span-3 lg:col-span-2 flex flex-col overflow-hidden md:p-4 px-2 gap-2 bg-gray-100'>
+        <div className='flex justify-between'>
+          <motion.h2 
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className='text-2xl font-bold text-gray-800 mb-4'
+          >
+            פרויקטים
+          </motion.h2>
+          <Link href="/projects/add">
+            <Button>צור פרויקט חדש</Button>
+          </Link>
+        </div>
         <div className='relative mb-4'>
           <GoogleSearchAutocomplete/>
+         {isMobile && 
+         <>
+         <h4 className='text-lg font-bold text-gray-800 mb-4'>מחלקה</h4>
+         <SelectDepartment departments={departments} selectedDep={prop_department_id ?? 0} />
+         </>
+        }
         </div>
 
-        <ScrollArea> 
+
+        <ScrollArea className='h-[500px] md:h-auto border-2 border-gray-200 rounded-lg'> 
           <AnimatePresence>
             {loading ? (
               <motion.div 
@@ -174,12 +194,6 @@ export default function Home({ projects, prop_sort_by, prop_department_id, prop_
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
               >
-                {/* <Card className="mt-2 text-right">
-                  <CardHeader>
-                    <Skeleton className="ml-auto h-7 w-3/4" />
-                    <Skeleton className="ml-auto h-3 w-1/2" />
-                  </CardHeader>
-                </Card> */}
                     <Card className="overflow-hidden mt-2 text-right hover:shadow-lg transition-shadow">
                       <CardContent className='p-6'>
                         <div className='flex justify-between flex-row-reverse items-center mb-4'>
@@ -190,21 +204,16 @@ export default function Home({ projects, prop_sort_by, prop_department_id, prop_
                         <div className='grid grid-cols-2 gap-4'>                          
                           <div className='flex items-center justify-start'>
                             <Skeleton className="h-12 w-12 rounded-full" />
-
-                            {/* <span className="text-sm font-medium">{proj.owner.firstName} {proj.owner.lastName}</span> */}
                           </div>
                           <div>
                             <div className=' flex flex-row'> 
                               <Skeleton className="ml-2 mt-1 mr-2 h-5 w-3/4" />
                               <p className="text-sm text-gray-600 mb-2 text-right">:</p>
                               <p className="text-sm text-gray-600 mb-2 text-right">תקציב</p>
-
                             </div>
-                            {/* <p className="text-sm text-gray-600 mb-2">תקציב: {proj.budget}</p> */}
                             <div className="flex flex-row-reverse items-center text-sm text-gray-600">
                               <Calendar className="ml-2 h-4 w-4" />
                               <Skeleton className="mt-2 h-5 w-3/4" />
-                              {/* <span>{format(new Date(proj.start_date), "MM/yyyy")} - {format(new Date(proj.end_date), "MM/yyyy")}</span> */}
                             </div>
                           </div>
                         </div>
@@ -226,14 +235,14 @@ export default function Home({ projects, prop_sort_by, prop_department_id, prop_
               <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className='text-center text-gray-500'
+                className='text-center  text-gray-500'
               >
-                לא נמצאו פרויקטים 
+                לא נמצאו פרויקטים במחלקה זו
               </motion.div>
             ) : (
               selectedProjects.map((proj) => (
                 <motion.div
-                  key={proj.id}
+                  key={(proj.id + proj.start_date)}
                   initial={{ opacity: 0, x: 50 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -50 }}
@@ -241,34 +250,32 @@ export default function Home({ projects, prop_sort_by, prop_department_id, prop_
                 >
                   <Link href={`/projects/${proj.id}`}>
                     <Card className="overflow-hidden mt-2 text-right hover:shadow-lg transition-shadow">
-                      <CardContent className='p-6'>
-                        <div className='flex justify-between flex-row-reverse items-center mb-4'>
-                          <h3 className="text-xl font-bold text-gray-800">{proj.project_name}</h3>
+                      <CardContent dir="rtl" className='p-4 md:p-6'>
+                        <div className='flex justify-between flex-col md:flex-row items-start md:items-center mb-4'>
+                          <h3 className="md:text-xl text-lg font-bold text-gray-800">{proj.project_name}</h3>
                           <Badge>{proj.status}</Badge>
                         </div>
                         
-                        <div className='grid grid-cols-2 gap-4'>                          
-                          <div className='flex items-center justify-start'>
+                        <div className='grid-cols-2 gap-4 hidden md:grid'>                          
+                          <div className='flex items-start justify-end order-2'>
                           <Avatar className='w-12 h-12 rounded-full bg-gray-100 relative'>
                             <AvatarImage src={proj.owner.picture} />
                             <AvatarFallback className=' absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>{proj.owner.firstName[0] + '' + proj.owner.lastName[0]}</AvatarFallback>
                           </Avatar>
-
-                            {/* <span className="text-sm font-medium">{proj.owner.firstName} {proj.owner.lastName}</span> */}
                           </div>
-                          <div className='text-right'>
+                          <div className='text-right hidden md:block'>
                             <p className="text-sm text-gray-600 mb-2">תקציב: {proj.budget}</p>
-                            <div className="flex flex-row-reverse items-center text-sm text-gray-600">
+                            <div className="flex flex-row items-start justify-start text-sm text-gray-600">
                               <Calendar className="ml-2 h-4 w-4" />
                               <span>{format(new Date(proj.start_date), "MM/yyyy")} - {format(new Date(proj.end_date), "MM/yyyy")}</span>
                             </div>
                           </div>
                         </div>
                         
-                        <div className='mt-4'>
+                        <div className='mt-4 md:block'>
                           <p className='text-sm font-semibold mb-2'>ישובים משתתפים</p>
-                          <div className='flex flex-wrap gap-2 justify-end'>
-                            {proj.settlements.map((settlement) => (
+                          <div className='flex flex-wrap gap-2 justify-start'>
+                            {proj.settlements instanceof Array && proj.settlements.map((settlement) => (
                               <Badge key={settlement.settlement_id} variant="secondary">
                                 {settlement.name}
                               </Badge>
@@ -283,6 +290,9 @@ export default function Home({ projects, prop_sort_by, prop_department_id, prop_
             )}
           </AnimatePresence>
         </ScrollArea>
+        <div className='flex-1 flex justify-center align-bottom'>
+          {count > 0 && <PaginationDemo page_number={1} page_size={5} total_items={count} />}
+        </div>
       </article>
     </motion.section>
   )

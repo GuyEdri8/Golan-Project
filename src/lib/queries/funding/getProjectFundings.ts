@@ -6,6 +6,8 @@ export async function getProjectFundings(projectId: number) {
     const fundings = await db
     .select({
         id: projectFundingSources.id,
+        project_id: projectFundingSources.project_id,
+        funding_source_id: projectFundingSources.funding_source_id,
         name: fundingSources.source_name,
         budget: projectFundingSources.allocated_amount
     })
@@ -14,6 +16,4 @@ export async function getProjectFundings(projectId: number) {
     .where(eq(projectFundingSources.project_id, projectId));
     return fundings;
 
-
 }
-

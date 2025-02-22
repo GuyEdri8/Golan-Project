@@ -20,11 +20,9 @@ import {
 } from "@/components/ui/popover"
 
 
-export function DepartmentsPopup({departments}: {departments: {id: number, department_name: string, project_type: string}[]}) {
+export function DepartmentsPopup({departments, onUpdate, currentDepartment}: {departments: {id: number, department_name: string, project_type: string}[], onUpdate: (department_id: number) => void, currentDepartment: string  }) {
   const [open, setOpen] = React.useState(false)
-  const [value, setValue] = React.useState("")
-
-
+  const [value, setValue] = React.useState(currentDepartment)
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -36,7 +34,7 @@ export function DepartmentsPopup({departments}: {departments: {id: number, depar
         >
           {value
             ? departments.find((department) => department.id === parseInt(value))?.department_name
-            : "בחר מקור מימון חיצוני..."}
+            : "בחר מחלקה..."}
 
 
 
@@ -45,17 +43,17 @@ export function DepartmentsPopup({departments}: {departments: {id: number, depar
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0">
         <Command>
-          <CommandInput placeholder="חיפוש מקור מימון חיצוני..." className="h-9" />
+          <CommandInput placeholder="חיפוש מחלקה..." className="h-9" />
           <CommandList>
 
-            <CommandEmpty>No framework found.</CommandEmpty>
+            <CommandEmpty>לא נמצאה מחלקה</CommandEmpty>
             <CommandGroup>
               {departments.map((department) => (
                 <CommandItem
                   key={department.id}
                   value={department.id.toString()}
                   onSelect={(currentValue) => {
-
+                    onUpdate(parseInt(currentValue))
                     setValue(currentValue === value ? "" : currentValue)
                     setOpen(false)
                   }}

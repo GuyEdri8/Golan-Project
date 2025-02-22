@@ -3,26 +3,26 @@ import { BackButton } from "@/components/BackButton";
 import ProjectPage from "./project-pages";
 import { Suspense } from "react";
 import { getAllProjectFromFundingSorce } from "@/lib/queries/getAllProjectFromFundingSorce";
-import { getProjectsByDepartmentAndSettlement } from '@/lib/queries/getProjectsByDepartment';
+import { getProjectsByDepartmentAndSettlement,getProjects, getProjectsCount, getProjectsByDepartmentAndSettlementCount } from '@/lib/queries/getProjectsByDepartment';
 import {getProjectsByIds} from '@/lib/queries/getProjectsByDepartment';
 import { getAllFundingSources } from "@/lib/queries/getFundingSources";
+import Loading from "@/app/loading";
+
 export default async function ProjectDirectionPage ({
     searchParams,
 }: {
     searchParams: Promise<{[key: string] : string | undefined}>
 }) {
-    const {department_id,prop_sort_by, funder_id} = await searchParams;
+    const {department_id,prop_sort_by, funder_id, page_number, page_size} = await searchParams;
     // console.log(department_id,project_id,funder_id);
     const currentSorting = (prop_sort_by ?? 'מחלקות')
-    
+    const pageSize = parseInt(page_size ?? '5');
+    const pageNumber = parseInt(page_number ?? '1');
+
     if(funder_id)
     {
         return(
-            <Suspense fallback={
-                <div className="flex items-center justify-center h-screen">
-                    <div className="text-2xl">טוען מחלקות...</div>
-                </div>
-            }>
+            <Suspense>
                 <ProjectFundingSources funder_id={funder_id}/>
             </Suspense>
         )
@@ -31,41 +31,37 @@ export default async function ProjectDirectionPage ({
         if(department_id)
         {
             const departments: Array<any> =  await getAllDepartmentsWithCount();
-            const proejctsFromDepartments = await getProjectsByDepartmentAndSettlement(department_id);
-            // console.log(proejctsFromDepartments)
+            const proejctsFromDepartments = await getProjectsByDepartmentAndSettlement(department_id, pageSize, (pageNumber - 1) * pageSize);
+            const count = await getProjectsByDepartmentAndSettlementCount(department_id);
+            console.log(proejctsFromDepartments, count)
             if(!proejctsFromDepartments)
             {
-                return <ProjectPage prop_sort_by={'מחלקות'} projects={[]} prop_departments={proejctsFromDepartments}/>
+                return <ProjectPage prop_sort_by={'מחלקות'} projects={[]} prop_departments={proejctsFromDepartments} count={0}/>
             }
             if(proejctsFromDepartments)
             {
                 return (
-                    <Suspense fallback={
-                        <div className="flex items-center justify-center h-screen">
-                            <div className="text-2xl">טוען מחלקות...</div>
-                        </div>
-                    }>
+                    <Suspense>
     
-                        <ProjectPage prop_sort_by={'מחלקות'} prop_department_id={parseInt(department_id)} projects={proejctsFromDepartments} prop_departments={departments}/>
+                        <ProjectPage prop_sort_by={'מחלקות'} prop_department_id={parseInt(department_id)} projects={proejctsFromDepartments} prop_departments={departments} count={count}/>
                         
                     </Suspense>
                 )
             }
         }
-        
+
+        const projects = await getProjects(pageSize, (pageNumber - 1) * pageSize) ?? [];
+        const count = await getProjectsCount();
+        console.log(count)
         return (
-            <Suspense fallback={
-                <div className="flex items-center justify-center h-screen">
-                    <div className="text-2xl">טוען מחלקות...</div>
-                </div>
-            }>
-                <ProjectsDepartments currentSorting={currentSorting}/>
+            <Suspense>
+                <ProjectsDepartments currentSorting={currentSorting} projects={projects} count={count}/>
             </Suspense>
         )
     }
 }
 
-async function ProjectsDepartments({currentSorting} : {currentSorting : string}) {
+async function ProjectsDepartments({currentSorting, projects, count} : {currentSorting : string, projects : Array<any>, count : number}) {
     const elementsSortby: Array<any> =  (currentSorting === 'מחלקות') ? await getAllDepartmentsWithCount() : await getAllFundingSources(); // Get all Funding Soruces        
 
     if(!elementsSortby)
@@ -78,7 +74,7 @@ async function ProjectsDepartments({currentSorting} : {currentSorting : string})
         )
     }   
     return (
-            <ProjectPage  prop_sort_by={currentSorting}  prop_departments={elementsSortby}/> 
+            <ProjectPage  prop_sort_by={currentSorting}  prop_departments={elementsSortby} projects={projects} count={count}/> 
     )
 }
 
@@ -99,16 +95,16 @@ async function ProjectFundingSources({funder_id} : {funder_id : string}) {
         
         if(!arrProjects)
         {
-            return <ProjectPage prop_sort_by={'מקורות מימון'} projects={[]} prop_departments={fundingSoucres}/>
+            return <ProjectPage prop_sort_by={'מקורות מימון'} projects={[]} prop_departments={fundingSoucres} count={0}/>
         }
         if(arrProjects)
         {
             const projects = await getProjectsByIds(arrProjects)
             if(!projects)
             {
-                return <ProjectPage prop_sort_by={'מקורות מימון'} projects={[]} prop_departments={fundingSoucres}/>
+                return <ProjectPage prop_sort_by={'מקורות מימון'} projects={[]} prop_departments={fundingSoucres} count={0}/>
             }
-            return ( <ProjectPage prop_sort_by={'מקורות מימון'} prop_funder_id={parseInt(funder_id)} projects={projects} prop_departments={fundingSoucres}/>
+            return ( <ProjectPage prop_sort_by={'מקורות מימון'} prop_funder_id={parseInt(funder_id)} projects={projects} prop_departments={fundingSoucres} count={arrProjects.length}/>
             )
         }
     }

@@ -12,8 +12,8 @@ export async function deleteFileByURL(fileURL: string, tx?: any) {
 
 
 
-export async function deleteFile(fileID: number) {
-  const fileToDelete = await db
+export async function deleteFile(fileID: number, tx?: any) {
+  const fileToDelete = await (tx || db)
   .delete(projectFiles)
   .where(eq(projectFiles.id, fileID))
   .execute()

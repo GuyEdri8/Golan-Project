@@ -13,19 +13,17 @@ import { TableCell } from "@/components/ui/table";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { ComboboxDemo } from "./combobox";
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { v4 as uuidv4 } from 'uuid';
 
 type FundingInProject = {
-  id: string,
-  project_id: number
-  funding_source_id:number,
+  id?: string,
+  project_id: number,
+  funding_source_id: number,
   allocated_amount: number,
   allocated_date: Date,
 }
 export default function ProjectContact({project, fundings} : {project: any, fundings: any}) {
-    console.log(fundings);
     const router = useRouter();
     const queryClient = useQueryClient();
     const {editMode, setEditMode, editing} = useProject();
@@ -110,11 +108,13 @@ export function FundingDialog({projectId, fundingProcess}: {projectId: string | 
 
   // Mutation to update fundings
   const updateFundingsMutation = useMutation({
-    mutationFn: async (data: { milestones: { milestones: any[] } }) => {
+    mutationFn: async (data: { fundings: FundingInProject[] }) => {
       if (!projectId) throw new Error('No project ID');
-      const response = await fetch(`/api/projects/${projectId}/update`, {
+      // שליחת הנתונים ללא ה-ID
+      const fundingsWithoutTempIds = data.fundings.map(({ id, ...rest }) => rest);
+      const response = await fetch(`/api/projects/${projectId}/funding`, {
         method: 'PATCH',
-        body: JSON.stringify(data),
+        body: JSON.stringify({ fundings: fundingsWithoutTempIds }),
       });
       if (!response.ok) throw new Error('Network response was not ok');
       return response.json();
@@ -129,9 +129,7 @@ export function FundingDialog({projectId, fundingProcess}: {projectId: string | 
 
   const handleSave = () => {
     updateFundingsMutation.mutate({
-      milestones: {
-        milestones: fundings
-      }
+      fundings: arrFundings
     });
   };
 
@@ -180,15 +178,15 @@ export function FundingDialog({projectId, fundingProcess}: {projectId: string | 
 
   const addNewFunding = () => {
     const newFunding: FundingInProject = {
-      id: uuidv4(),
       project_id: parseInt(projectId),
       funding_source_id: 0,
       allocated_amount: 0,
       allocated_date: new Date(),
     };
-    setNewFundingAdded(newFunding);
-    setArrFundings([...arrFundings, newFunding]);
-    setEditingId(newFunding.id);
+    const tempId = uuidv4();
+    setNewFundingAdded({ ...newFunding, id: tempId });
+    setArrFundings([...arrFundings, { ...newFunding, id: tempId }]);
+    setEditingId(tempId);
   };
 
   if (isLoading) return <div>Loading...</div>;
@@ -228,6 +226,11 @@ export function FundingDialog({projectId, fundingProcess}: {projectId: string | 
                         </TableRow>
                       </TableHeader>
                       <TableBody>
+                        {arrFundings.length === 0 && (
+                          <TableRow>
+                            <TableCell colSpan={3} className="text-center">אין מקורות מימון חיצוניים</TableCell>
+                          </TableRow>
+                        )}
                         {arrFundings.map((funding) => (
                           <TableRow key={funding.id}>
                             <TableCell>{fundings.find(f => f.id.toString() === funding.funding_source_id.toString())?.source_name}</TableCell>
@@ -249,42 +252,76 @@ export function FundingDialog({projectId, fundingProcess}: {projectId: string | 
                   </div>
                 </div>
               </div>
-
-            {editingFunding && (
-              <div className="border-t pt-6">
-                <h3 className="text-lg font-medium mb-4">
-                  {editingFunding.id === newFundingAdded?.id ? "הוספת מקור מימון חיצוני חדש" : "עריכת מקור מימון חיצוני"}
+              {editingFunding && (
+              <div className="border-t pt-6 max-w-2xl mx-auto">
+                {/* Header section with improved spacing and typography */}
+                <h3 className="text-xl font-semibold mb-6 text-gray-800">
+                  {editingFunding.id === newFundingAdded?.id 
+                    ? "הוספת מקור מימון חיצוני חדש" 
+                    : "עריכת מקור מימון חיצוני"
+                  }
                 </h3>
-                <div className="grid gap-4">
-                  <div className="space-y-2">
-                    <label htmlFor="title">בחר מקור מימון חיצוני</label>
-                    <ComboboxDemo 
-                      items={aviailableFundings.map(el => ({
-                        value: el.id.toString(),
-                        label: el.source_name 
-                      }))} 
-                      name="מקור מימון חיצוני"
-                      onSelect={handleFundingSourceSelect}
-                      initialValue={editingFunding.funding_source_id?.toString()}
-                    />
+
+                    {/* Main form content with better structure */}
+                    <div className="space-y-6">
+                      {/* Funding source selection */}
+                      <div className="form-group">
+                        <label 
+                          htmlFor="fundingSource" 
+                          className="block text-sm font-medium text-gray-700 mb-2"
+                        >
+                          בחר מקור מימון חיצוני
+                        </label>
+                        <ComboboxDemo
+                          items={aviailableFundings.map(el => ({
+                            value: el.id.toString(),
+                            label: el.source_name
+                          }))}
+                          name="מקור מימון חיצוני"
+                          onSelect={handleFundingSourceSelect}
+                          initialValue={editingFunding.funding_source_id?.toString()}
+                          className="w-full"
+                        />
+                      </div>
+
+                      {/* Amount input */}
+                      <div className="form-group">
+                        <label 
+                          htmlFor="amount"
+                          className="block text-sm font-medium text-gray-700 mb-2"
+                        >
+                          סכום
+                        </label>
+                        <Input
+                          id="amount"
+                          className="w-full max-w-xs"
+                          type="number"
+                          value={editingFunding.allocated_amount}
+                          onChange={(e) => updateEditingFunding({ 
+                            allocated_amount: parseInt(e.target.value) 
+                          })}
+                        />
+                      </div>
+
+                      {/* Action buttons with improved styling */}
+                      <div className="flex justify-end gap-3 pt-4">
+                        <Button 
+                          onClick={handleCancelNewMilestone} 
+                          variant="outline"
+                          className="px-4 py-2"
+                        >
+                          ביטול
+                        </Button>
+                        <Button 
+                          onClick={handleSaveMileStone}
+                          className="px-4 py-2 bg-primary text-white"
+                        >
+                          עדכן שינויים
+                        </Button>
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <label>סכום</label>
-                    <Input 
-                      type="number" 
-                      value={editingFunding.allocated_amount} 
-                      onChange={(e) => updateEditingFunding({ allocated_amount: parseInt(e.target.value) })}
-                    />
-                  </div>
-                  <div className="flex justify-end gap-2 mt-4">
-                    <Button onClick={handleCancelNewMilestone} variant="outline">
-                      ביטול
-                    </Button>
-                    <Button onClick={handleSaveMileStone}>עדכן שינויים</Button>
-                  </div>
-                </div>
-              </div>
-            )}
+                )}
 
             <div className="border-t pt-6 flex justify-center">
               <Button onClick={handleSave}>שמור שינויים</Button>

@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { DebouncedInput } from '@/components/debounced-input';
+
 export default function CitiesTable({ settlements } : {settlements : Settlement[]}) {
     const [selected, setSelected] = useState<Settlement | null>(null)
     const router = useRouter();

@@ -3,6 +3,8 @@ import { useCallback, useState } from "react"
 import { useDropzone } from "react-dropzone"
 import { Upload, FileText, FileSpreadsheet, FileIcon, X } from "lucide-react"
 import { Button } from "./ui/button";
+import { useToast } from "@/hooks/useToast";
+import { useRouter } from "next/navigation";
 
 const maxFileSize = 5 * 1024 * 1024; // 5 MB
 
@@ -17,7 +19,8 @@ const allowedFileTypes = [
 
 export default function DropUpload({project_id}: {project_id: number}) {
   const [files, setFiles] = useState<File[]>([])
-
+  const router = useRouter();
+  const toast = useToast();
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newFiles = acceptedFiles.filter((file) => allowedFileTypes.includes(file.type))
     setFiles((prevFiles) => [...prevFiles, ...newFiles])
@@ -108,11 +111,17 @@ export default function DropUpload({project_id}: {project_id: number}) {
         if (!response.ok) {
             throw new Error(result.error || "Upload failed");
         }
-        alert("Upload complete!")
+        // alert("Upload complete!")
+        toast.success('קובץ נעלה בהצלחה', 'קובץ נעלה בהצלחה', 3000);
         setFiles([])
+        router.refresh();
         } catch (error) {
-            console.error("Error uploading file:", error);
-            alert("Failed to upload file: " + (error instanceof Error ? error.message : "Unknown error"));
+            if(error instanceof Error) {
+                toast.error('שגיאה בעלאת קובץ', error.message, 3000);
+            }
+            else {
+                toast.error('שגיאה בעלאת קובץ', 'שגיאה בעלאת קובץ', 3000);
+            }
         }
     }
     return (

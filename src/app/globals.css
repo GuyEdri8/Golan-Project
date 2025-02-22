@@ -90,3 +90,33 @@ body {
 [data-radix-popper-content-wrapper] {
   z-index: 9999 !important;
 }
+
+/* Add these styles to your CSS file */
+.stepper-progress {
+  transition: all 0.3s ease;
+}
+
+.stepper-icon {
+  transition: all 0.3s ease;
+}
+
+.stepper-title {
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
+  transition: all 0.3s ease;
+}
+
+.active .stepper-title {
+  color: hsl(var(--primary));
+}
+
+
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

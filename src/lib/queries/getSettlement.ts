@@ -7,6 +7,5 @@ export async function getSettlement(id: number) {
     const settlement = await db.select()
             .from(settlements)
             .where((eq(settlements.settlement_id, id))) // returns array.
-    console.log(settlement)
     return settlement[0]; 
 }

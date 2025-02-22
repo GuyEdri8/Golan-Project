@@ -12,6 +12,8 @@ import { getProjectLogs } from '@/lib/queries/logs/getProjectLogs'
 import { he } from 'date-fns/locale/he'
 import { ProjectLogInfiniteScroll } from './ProjectLogInfiniteScroll'
 import { EditButton } from './EditButton'
+import ExportFile from './exportFile'
+
 type Props = {
   project: getProjectProp
 }
@@ -31,10 +33,7 @@ export async function Sidebar({project}: Props) {
         <CardContent className="flex flex-col gap-2">
           <EditButton />
           <FileUploadDialog project_id={project.id}/>
-          <Button className="w-full justify-start">
-            <Share2 className="ml-2 h-4 w-4" />
-            שתף פרויקט
-          </Button>
+          <ExportFile project={project} />
         </CardContent>
       </Card>
 
