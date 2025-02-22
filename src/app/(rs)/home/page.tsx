@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import HomeComponent from "./home"
 import { getProjectsByStatus } from "@/lib/queries/getProjectsByStatus"
 import { getMonthlyProjects } from "@/lib/queries/getMonthlyProjects"
@@ -10,8 +12,9 @@ export const metadata = {
     title: 'Home',
 }
 export default async function Home() {
-    const { getUser } = getKindeServerSession();
-    const user = await getUser();
+    const { getUser } = await getKindeServerSession();
+    const userResult = await getUser();
+    const user = userResult ? userResult : { id: null };
 
     const activeProjects = await getProjectsByStatus('פעיל');
     const completedProjects = await getProjectsByStatus('הושלם');
