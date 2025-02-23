@@ -6,13 +6,15 @@ export const settlements = pgTable('settlements', {
     name: varchar('settlement_name').notNull()
 }) 
 export const settlement_statistics = pgTable('settlement_statistics', {
-  id: serial('id'),
+  id: serial('id').primaryKey(),
   settlement_id: integer('settlement_id').notNull().references(() => settlements.settlement_id),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
   households: integer('house_holds').notNull(),
   population: integer('population').notNull(),
   population_2030: integer('population_2030').notNull(),
-  growth_rate: real('growth_rate').notNull()
+  growth_rate: real('growth_rate').notNull(),
+  topics_of_interest: text('topics_of_interest').array(),
+  nearby_projects: text('nearby_projects').array()
 })
 
 export const projectSettlements = pgTable('project_settlements', {

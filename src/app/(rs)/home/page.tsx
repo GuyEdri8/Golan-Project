@@ -6,6 +6,8 @@ import { getNewestProjects } from "@/lib/queries/getNewestProjects"
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server"
 import { getSettlementBudgets } from "@/lib/queries/getSettlementBudgets"
 import { getTopDepartments } from "@/lib/queries/getTopDepartments"
+import { getTopFundingSources } from "@/lib/queries/getTopFundingSources"
+import { getProject } from "@/lib/queries/projects/getProject"
 export const metadata = {
     title: 'Home',
 }
@@ -64,6 +66,37 @@ export default async function Home() {
           }
       ]
   };
+
+  const topFundingSources = await getTopFundingSources();
+    
+  const fundingSourcesData = {
+    labels: topFundingSources.map(source => source.source_name as string),  // Type assertion
+    datasets: [
+        {
+            label: 'סכום מימון (₪)',
+            data: topFundingSources.map(source => source.total_amount),
+            borderColor: 'rgb(0, 182, 182)',
+            tension: 0.4,
+            fill: false
+        }
+    ]
+  };
+    
+    // Fetch full details for each upcoming project
+    const upcomingProjectsWithDetails = await Promise.all(
+        upcomingProjects.map(async (project) => {
+            const details = await getProject(project.id);
+            return details;
+        })
+    );
+
+    // Fetch full details for each new project
+    const newProjectsWithDetails = await Promise.all(
+      newestProjects.map(async (project) => {
+          const details = await getProject(project.id);
+          return details;
+      })
+  );
   
     return <HomeComponent 
       firstName={user?.given_name || 'Guest'}
@@ -74,10 +107,11 @@ export default async function Home() {
       monthData={monthData}
       currentMonthProjects={currentMonthProjects}
       last12Months={last12Months}
-      upcomingProjects={upcomingProjects}
-      newestProjects={newestProjects}
+      upcomingProjects={upcomingProjectsWithDetails}
+      newestProjects={newProjectsWithDetails}
       villageBudgetData={villageBudgetData}
       departmentData={departmentData}
+      fundingSourcesData={fundingSourcesData}
     />
   }
  

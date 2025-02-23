@@ -6,6 +6,7 @@ export async function getUpcomingProjects() {
   try {
     const upcomingProjects = await db
       .select({
+        id: projects.id,
         project_name: projects.project_name,
         description: projects.description,
         end_date: projects.end_date,

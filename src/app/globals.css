@@ -90,3 +90,21 @@ body {
 [data-radix-popper-content-wrapper] {
   z-index: 9999 !important;
 }
+
+@media print {
+   /* Ensure background colors and images print */
+   * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Remove any page margins */
+  @page {
+    margin: 0;
+  }
+
+  /* Ensure full width content */
+  .max-w-7xl {
+    max-width: none !important;
+  }
+}
