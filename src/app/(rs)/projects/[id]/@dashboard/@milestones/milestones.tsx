@@ -2,7 +2,7 @@
 import { useProject } from "@/components/ProjectContext";
 import OverviewLayout from "../OverviewLayout";
 import { Button } from "@/components/ui/button";
-import { Check, Pencil, X } from "lucide-react";
+import { Check, Circle, CheckCircle2, Pencil, PlayCircle, X } from "lucide-react";
 import { format, formatDistance } from "date-fns";
 import {  useState } from "react"
 import { Calendar } from "@/components/ui/calendar"
@@ -23,6 +23,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { he } from 'date-fns/locale/he'
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
+import { Progress } from "@/components/ui/progress";
+
 type Status = "planned" | "in-progress" | "completed"
 interface Milestone {
   id: string
@@ -36,6 +38,7 @@ export default function Milestones({startDate, endDate, milestones}: {startDate:
     const {editMode, setEditMode, editing} = useProject();
     // TODO: get project id from url
     const projectId = useParams();
+    const [progress, setProgress] = useState(33);
     const [projectStartDate, setProjectStartDate] = useState<Date | null>(startDate ?? new Date());
     const [projectEndDate, setProjectEndDate] = useState<Date | null>(endDate ?? new Date());
     const handleProjectEdit = async () => {
@@ -51,19 +54,21 @@ export default function Milestones({startDate, endDate, milestones}: {startDate:
         start_date: startEditDate.toISOString(),
         end_date: endEditDate.toISOString() 
       }
-      
-      const response = await fetch(`/api/projects/${projectId.id}/update`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      })
-      
-      if (!response.ok) {
-        console.error('Error updating project:', await response.text());
-      }
-      
+      try {
+        const response = await fetch(`/api/projects/${projectId.id}/update`, {
+            method: 'PATCH',
+            headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(body),
+        })
+        if (!response.ok) {
+          throw new Error('Failed to update project')
+        }
+
+      } catch (error) {
+          console.error(error)
+        }
       setEditMode(null);
     }
     const handleCancelProjectEdit = () => {
@@ -88,6 +93,7 @@ export default function Milestones({startDate, endDate, milestones}: {startDate:
               </Button>
             </> :(
                 <div className="flex gap-2">
+                  <MilestoneDialog milestoneProgress={milestones} projectId={projectId} />
                   <Button variant="ghost" onClick={handleCancelProjectEdit}>
                       <X className="ml-2 h-2 w-2" />
                   </Button>
@@ -103,22 +109,120 @@ export default function Milestones({startDate, endDate, milestones}: {startDate:
         <OverviewLayout header={editing ? header : "ציר זמן ואבני דרך"}>
             {
                 editMode === 'milestones' ? (
-                    <div className="flex flex-col gap-1 w-full justify-evenly">
-                        <p>תאריך התחלת פרוייקט:</p>
-                        <DatePickerDemo userdate={projectStartDate} onChange={setProjectStartDate} />
-                        <p>תאריך סיום פרוייקט:</p>
-                        <DatePickerDemo userdate={projectEndDate} onChange={setProjectEndDate} />
-                        <div className='flex flex-col w-full mt-2 mb-auto'>
-                            <p>לפרויקט זה נקבעו {milestoneProg.total_milestones} אבני דרך</p>
-                            <p> <span className={`inline-block w-2 h-2 rounded-full ${getStatusColor('completed')}`} /> מתוכם {milestoneProg.completed} נסגרו</p>
-                            <p> <span className={`inline-block w-2 h-2 rounded-full ${getStatusColor('in_progress')}`} /> מתוכם {milestoneProg.in_progress} בתהליך</p>
-                            <p> <span className={`inline-block w-2 h-2 rounded-full ${getStatusColor('not_started')}`} /> מתוכם {milestoneProg.not_started} לא התחילו</p>
-                        </div>
-                        <MilestoneDialog milestoneProgress={milestones} projectId={projectId} />
-                    </div> 
+                  <div className="space-y-6">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="p-4 bg-slate-50 rounded-lg">
+                      <div className="text-sm text-muted-foreground mb-1">תאריך התחלה</div>
+                      <DatePickerDemo userdate={projectStartDate} onChange={setProjectStartDate} />
+                    </div>
+                    <div className="p-4 bg-slate-50 rounded-lg">
+                      <div className="text-sm text-muted-foreground mb-1">תאריך סיום</div>
+                      <DatePickerDemo userdate={projectEndDate} onChange={setProjectEndDate} />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">התקדמות כללית</span>
+                      <span className="font-medium">{progress}%</span>
+                    </div>
+                    <Progress value={progress} className="h-2" />
+                    {startDate && endDate && (
+                      <div className="text-sm text-muted-foreground">זמן תקופת הפרוייקט: {formatDistance(endDate, startDate, {locale: he })}</div>
+                    )}
+                  </div>
+
+                  <div className="grid gap-3 md:grid-cols-3">
+                    <div className="flex items-center gap-2 p-3 bg-green-50 rounded-lg">
+                      <CheckCircle2 className="w-5 h-5 text-green-500" />
+                      <div>
+                        <div className="font-medium">{milestoneProg.completed}</div>
+                        <div className="text-sm text-muted-foreground">משימות הושלמו</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
+                      <PlayCircle className="w-5 h-5 text-blue-500" />
+                      <div>
+                        <div className="font-medium">{milestoneProg.in_progress}</div>
+                        <div className="text-sm text-muted-foreground">בתהליך</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
+                      <Circle className="w-5 h-5 text-slate-400" />
+                      <div>
+                        <div className="font-medium">{milestoneProg.not_started}</div>
+                        <div className="text-sm text-muted-foreground">טרם התחילו</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>                  
+                    // <div className="flex flex-col gap-1 w-full justify-evenly">
+                    //     <p>תאריך התחלת פרוייקט:</p>
+                    //     <DatePickerDemo userdate={projectStartDate} onChange={setProjectStartDate} />
+                    //     <p>תאריך סיום פרוייקט:</p>
+                    //     <DatePickerDemo userdate={projectEndDate} onChange={setProjectEndDate} />
+                    //     <div className='flex flex-col w-full mt-2 mb-auto'>
+                    //         <p>לפרויקט זה נקבעו {milestoneProg.total_milestones} אבני דרך</p>
+                    //         <p> <span className={`inline-block w-2 h-2 rounded-full ${getStatusColor('completed')}`} /> מתוכם {milestoneProg.completed} נסגרו</p>
+                    //         <p> <span className={`inline-block w-2 h-2 rounded-full ${getStatusColor('in_progress')}`} /> מתוכם {milestoneProg.in_progress} בתהליך</p>
+                    //         <p> <span className={`inline-block w-2 h-2 rounded-full ${getStatusColor('not_started')}`} /> מתוכם {milestoneProg.not_started} לא התחילו</p>
+                    //     </div>
+                    //     <MilestoneDialog milestoneProgress={milestones} projectId={projectId} />
+                    // </div> 
                 ) : (
-                    <>
-                    <div className="flex flex-col justify-between w-full gap-5">
+                    <>     
+                      <div className="space-y-6">
+                        <div className="grid gap-4 md:grid-cols-2">
+                          {startDate && 
+                          <div className="p-4 bg-slate-50 rounded-lg">
+                            <div className="text-sm text-muted-foreground mb-1">תאריך התחלה</div>
+                            <div className="font-medium">{format(startDate, 'dd/MM/yyyy')}</div>
+                          </div>
+                          }
+                          {endDate && 
+                          <div className="p-4 bg-slate-50 rounded-lg">
+                            <div className="text-sm text-muted-foreground mb-1">תאריך סיום</div>
+                            <div className="font-medium">{format(endDate, 'dd/MM/yyyy')}</div>
+                          </div>
+                          }
+                        </div>
+
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">התקדמות כללית</span>
+                            <span className="font-medium">{progress}%</span>
+                          </div>
+                          <Progress value={progress} className="h-2" />
+                          {startDate && endDate && (
+                            <div className="text-sm text-muted-foreground">זמן תקופת הפרוייקט: {formatDistance(endDate, startDate, {locale: he })}</div>
+                          )}
+                        </div>
+
+                        <div className="grid gap-3 md:grid-cols-3">
+                          <div className="flex items-center gap-2 p-3 bg-green-50 rounded-lg">
+                            <CheckCircle2 className="w-5 h-5 text-green-500" />
+                            <div>
+                              <div className="font-medium">{milestoneProg.completed}</div>
+                              <div className="text-sm text-muted-foreground">משימות הושלמו</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
+                            <PlayCircle className="w-5 h-5 text-blue-500" />
+                            <div>
+                              <div className="font-medium">{milestoneProg.in_progress}</div>
+                              <div className="text-sm text-muted-foreground">בתהליך</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
+                            <Circle className="w-5 h-5 text-slate-400" />
+                            <div>
+                              <div className="font-medium">{milestoneProg.not_started}</div>
+                              <div className="text-sm text-muted-foreground">טרם התחילו</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    {/* <div className="flex flex-col justify-between w-full gap-5">
                         <div className="flex flex-col justify-between w-full ">
                             {startDate && 
                                 (<p>תאריך התחלת פרוייקט: {format(startDate, 'dd/MM/yyyy')}</p>)
@@ -136,7 +240,7 @@ export default function Milestones({startDate, endDate, milestones}: {startDate:
                             <p> <span className={`inline-block w-2 h-2 rounded-full ${getStatusColor('in_progress')}`} /> מתוכם {milestoneProg.in_progress} בתהליך</p>
                             <p> <span className={`inline-block w-2 h-2 rounded-full ${getStatusColor('not_started')}`} /> מתוכם {milestoneProg.not_started} לא התחילו</p>
                         </div>
-                    </div>
+                    </div> */}
                     </>
                 )
             }
@@ -205,13 +309,17 @@ export function MilestoneDialog({milestoneProgress, projectId}: {milestoneProgre
         milestones: milestones
       }
     }
+    try {
+      const response = await fetch(`/api/projects/${projectId.id}/update`, {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+      })
+      if (!response.ok) {
+        throw new Error('Failed to update project')
+      }
 
-    const response = await fetch(`/api/projects/${projectId.id}/update`, {
-      method: 'PATCH',
-      body: JSON.stringify(body),
-    })
-    if(response.ok) {
-      router.refresh();
+    } catch (error) {
+      console.error(error)
     }
     setEditingId(null)
     setIsDialogOpen(false)
@@ -245,7 +353,6 @@ export function MilestoneDialog({milestoneProgress, projectId}: {milestoneProgre
         <DialogTrigger asChild>
           <Button variant="ghost" className="flex items-center gap-2">
             <Pencil className="h-4 w-4 ml-2" />
-            ערוך אבני דרך
           </Button>
         </DialogTrigger>
         <DialogContent className="max-w-4xl max-h-[80vh] flex flex-col">

@@ -67,7 +67,7 @@ export const columns: ColumnDef<fundingSources>[] = [
             )
         },
         cell: ({ row }) => (
-            <div className="flex justify-start">
+            <div className="hidden md:flex justify-start">
                 {row.getValue("id")}
             </div>
         ),

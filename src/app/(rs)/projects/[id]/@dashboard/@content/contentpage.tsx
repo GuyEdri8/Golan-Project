@@ -2,28 +2,44 @@
 import OverviewLayout from "../OverviewLayout";
 import { useProject } from "@/components/ProjectContext";
 import { Button } from "@/components/ui/button";
-import { Check, X, Pencil } from "lucide-react";
+import { Check, X, Pencil, Info } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea"
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/useToast";
 export default function ProjectContent({project} : {project: any}) {
     const router = useRouter();
     const {editMode, setEditMode, editing} = useProject();
     const [description, setDescription] = useState(project.description);
+    const toast = useToast();
     const handleCancelProjectEdit = () => {
         setEditMode(null);
     }
-    const handleProjectEdit = () => {
-        fetch(`/api/projects/${project.id}`, {
-            method: 'PATCH',
-            body: JSON.stringify({description: description})
-        })
-        setEditMode(null);
-        router.refresh();
+    const handleProjectEdit = async () => {
+        try {
+            await fetch(`/api/projects/${project.id}`, {
+                method: 'PATCH',
+                body: JSON.stringify({description: description})
+            })
+            setEditMode(null);
+            toast.success('עודכן תיאור הפרויקט', 'עדכון הפרוייקט בוצע בהצלחה', 3000);
+            router.refresh();
+        } catch (error) {
+            toast.error('שגיאה בעדכון תיאור הפרויקט', 'שגיאה בעדכון תיאור הפרויקט', 3000);
+        }
     }
+    const headerContent = (
+        <div className="flex items-center gap-2 text-lg font-semibold mb-2">
+        <Info className="w-5 h-5 text-primary" />
+        תיאור הפרויקט
+      </div>
+    )
     const header = (
         <div className="flex justify-between w-full">
-            <p>תיאור הפרויקט</p>
+            <div className="flex items-center gap-2 text-lg font-semibold mb-2">
+                <Info className="w-5 h-5 text-primary" />
+                תיאור הפרויקט
+            </div>
             {editMode !== 'content' ?  
             <>
               <Button variant="ghost" onClick={() => setEditMode(prev => prev === 'content' ? null : 'content')}>
@@ -42,7 +58,7 @@ export default function ProjectContent({project} : {project: any}) {
         </div>
     )
     return (
-        <OverviewLayout header={editing ? header : "תיאור הפרויקט"}>
+        <OverviewLayout header={editing ? header : headerContent}>
            {
             editMode === 'content' ? (
                 <div className="flex flex-col gap-1 w-full justify-evenly">

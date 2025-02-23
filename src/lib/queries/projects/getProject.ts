@@ -14,6 +14,7 @@ export async function getProject(project_id: number, tx?: any) {
         end_date: projects.end_date,
         status: projects.status,
         priority: projects.priority,  
+        department_id: projects.department_id,
         department_name: departments.department_name,
         owner_id: projects.owner_id,
         owner_first_name: users.first_name,

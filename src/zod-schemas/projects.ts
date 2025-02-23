@@ -1,5 +1,6 @@
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { projects } from '@/db/schema';
+import { z } from 'zod';
 
 
 export const insertProjectSchema = createInsertSchema(projects, {
@@ -20,3 +21,11 @@ export const selectProjecSchema = createSelectSchema(projects)
 
 export type insertProjecSchemaType = typeof insertProjectSchema._type
 export type selectProjecSchemaType = typeof selectProjecSchema._type
+
+export const statusNames: Record<number, string> = {
+    1: "פעיל",
+    2: "בתכנון",
+    3: "מעוכב",
+    4: "סגור"
+}
+

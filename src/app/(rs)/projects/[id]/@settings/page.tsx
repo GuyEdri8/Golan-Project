@@ -1,95 +1,110 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { DepartmentsPopup } from "./depratments-popup"
 import { getAllDepartmentsWithCount } from "@/lib/queries/getAllDepartments";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { getProject } from "@/lib/queries/projects/getProject";
+import { deleteProject, getProject } from "@/lib/queries/projects/getProject";
 import { getAllUsers } from "@/lib/queries/users/getAllUsers";
-import { OwnerUsersPopup } from "./owner-users";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ProjectNameCard } from "./components/ProjectNameCard"
+import { ProjectBudgetCard } from "./components/ProjectBudgetCard"
+import { ProjectDepartmentsCard } from "./components/ProjectDepartmentsCard"
+import { ProjectAdminCard } from "./components/ProjectAdminCard"
+import { updateProject } from "@/lib/queries/projects/updateProject";
+import { revalidatePath } from "next/cache";
+import { ProjectStatusCard } from "./components/ProjectStatusCard";
+import { createLog } from "@/lib/logs";
+// Server Actions
+async function updateProjectName(projectId: number, name: string) {
+  'use server'
+  const currentData = await getProject(projectId);
+  if (!currentData) {
+    throw new Error("Project not found");
+  }
+  if(currentData.project_name === name) {
+    throw new Error("שם הפרויקט כבר קיים");
+  }
+  await updateProject(projectId, { project_name: name });
+  createLog(projectId, "שינוי שם פרויקט", "פרויקט", `שם הפרויקט שונה ל${name}`, currentData.project_name, name);
+  revalidatePath(`/projects/${projectId}`);
+}   
+
+async function updateProjectBudget(projectId: number, budget: number) {
+  'use server'
+  const currentData = await getProject(projectId);
+  if (!currentData) {
+    throw new Error("Project not found");
+  }
+  if(currentData.budget === budget) {
+    throw new Error("לא בוצע שינוי בתקציב");
+  }
+  await updateProject(projectId, { budget: budget });
+  createLog(projectId, "שינוי תקציב פרויקט", "פרויקט", `תקציב הפרויקט שונה ל${budget}`, currentData.budget.toString(), budget.toString());
+  revalidatePath(`/projects/${projectId}`);
+}
+
+
+async function updateProjectDepartments(projectId: number, department_id: number) {
+  'use server'
+  const currentData = await getProject(projectId);
+  if (!currentData) {
+    throw new Error("Project not found");
+  }
+  if(currentData.department_id === department_id) {
+    throw new Error("המחלקה כבר קיימת");
+  }
+  await updateProject(projectId, { department_id: department_id });
+  createLog(projectId, "שינוי מחלקה פרויקט", "פרויקט", `המחלקה שונה ל${department_id}`, currentData.department_id.toString(), department_id.toString());
+  revalidatePath(`/projects/${projectId}`);
+}
+
+async function updateProjectStatus(projectId: number, status: string) {
+  'use server'
+  const currentData = await getProject(projectId);
+  if (!currentData) {
+    throw new Error("Project not found");
+  }
+  if(currentData.status === status) {
+    throw new Error("הסטטוס כבר קיים");
+  }
+  await updateProject(projectId, { status: status });
+  createLog(projectId, "שינוי סטטוס פרויקט", "פרויקט", `הסטטוס שונה ל${status}`, currentData.status, status);
+  revalidatePath(`/projects/${projectId}`);
+}
+
+
 
 export default async function ProjectSettings({params}: {params: {id: string}}) {
     const {id} = await params;
     const projectData = await getProject(Number(id));
-    const departments: Array<any> = await getAllDepartmentsWithCount();
-    const users: Array<any> = await getAllUsers();
-    const filteredUsers = users.filter((user) => user.id !== projectData?.owner_id);
-    
+    const departments = await getAllDepartmentsWithCount();
+    const boundUpdateName = updateProjectName.bind(null, Number(id));
+    const boundUpdateBudget = updateProjectBudget.bind(null, Number(id));
+    const boundUpdateDepartments = updateProjectDepartments.bind(null, Number(id));
+    const boundUpdateStatus = updateProjectStatus.bind(null, Number(id));
     return (
-        <ScrollArea className="h-full w-full">
-            <div dir="rtl" className="flex flex-col gap-4 pb-4">
-                <Card className="shadow-sm">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-lg">שם הפרויקט</CardTitle>
-                        <CardDescription>שם הפרויקט יוצג לכל המשתתפים בפרויקט.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="pb-2">
-                        <Input value={projectData?.project_name} placeholder="שם הפרויקט" />
-                    </CardContent>
-                    <CardFooter className="border-t pt-2">
-                        <Button size="sm">שמירה</Button>
-                    </CardFooter>
-                </Card>
+            <div dir="rtl" className="flex overflow-y-hidden flex-col gap-4 pb-4">
+                <ProjectNameCard 
+                    initialName={projectData?.project_name} 
+                    onUpdate={boundUpdateName}
+                />
 
-                <Card className="shadow-sm">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-lg">תקציב הפרויקט</CardTitle>
-                        <CardDescription>תקציב הפרויקט יוצג לכל המשתתפים בפרויקט.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="pb-2">
-                        <Input value={projectData?.budget} placeholder="תקציב הפרויקט" />
-                    </CardContent>
-                    <CardFooter className="border-t pt-2">
-                        <Button size="sm">שמירה</Button>
-                    </CardFooter>
-                </Card>
+                <ProjectBudgetCard 
+                    initialBudget={projectData?.budget}
+                    onUpdate={boundUpdateBudget}
+                />
 
-                <Card className="shadow-sm">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-lg">מחלקות בפרויקט</CardTitle>
-                        <CardDescription>בחר מחלקות בפרויקט כפי שהוא יוצג לכל המשתתפים בפרויקט.</CardDescription>
-                    </CardHeader>
+                <div className="flex flex-col md:flex-row gap-4 justify-between w-full">
+                    <ProjectDepartmentsCard 
+                        currentDepartment={projectData?.department_id.toString()}
+                        departments={departments}
+                        onUpdate={boundUpdateDepartments}
+                    />
+                    <ProjectStatusCard
+                        onUpdate={boundUpdateStatus}
+                    />
+                </div>
 
-                    <CardContent className="pb-2">
-
-                        <DepartmentsPopup departments={departments} />
-                    </CardContent>
-                    <CardFooter className="border-t pt-2">
-                        <Button size="sm">שמירה</Button>
-                    </CardFooter>
-                </Card>
-
-                <Card className="shadow-sm">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-lg">פעולות אדמיניסטרטיביות</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div>
-                            <p className="text-sm text-gray-500 mb-2">שינוי סטטוס פרוייקט מבין הסטטוסים המוגדרים במערכת.</p>
-                            <Select dir="rtl">
-                                <SelectTrigger>
-                                    <SelectValue placeholder="בחר סטטוס" />
-                                </SelectTrigger>
-                                <SelectContent data-side="right">
-                                    <SelectItem value="1">פעיל</SelectItem>
-                                    <SelectItem value="2">בתכנון</SelectItem>
-                                    <SelectItem value="3">מעוכב</SelectItem>
-                                    <SelectItem value="4">סגור</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-500 mb-2">מחיקת פרוייקט תוביל למחיקת כל הקשרים הקשורים לפרויקט.</p>
-                            <Button variant="ghost" className="bg-red-200 hover:bg-red-400 text-red-500">
-                                מחיקת פרוייקט
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
+                <ProjectAdminCard
+                    project_id={projectData}
+                    project_name={projectData?.project_name}
+                />
             </div>
-        </ScrollArea>
     )
 }
-

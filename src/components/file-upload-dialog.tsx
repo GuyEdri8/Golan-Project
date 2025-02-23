@@ -23,7 +23,7 @@ const allowedFileTypes = [
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ]
 
-export default function FileUploadDialog({ project_id } : {project_id : number}) {
+export default function FileUploadDialog({ project_id, mobile } : {project_id : number, mobile?: boolean}) {
   const [files, setFiles] = useState<File[]>([])
   const [open, setOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -122,7 +122,7 @@ export default function FileUploadDialog({ project_id } : {project_id : number})
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="w-full justify-start">
+        <Button variant={mobile ? "outline" : "default"} className={`w-full justify-start ${mobile ? "md:hidden" : ""}`}>
             <FileText className="ml-2 h-4 w-4" />
             הוסף מסמך
         </Button>

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { FileIcon, FileSpreadsheet, FileText } from "lucide-react"
 import { formatDate } from "date-fns";
 import { useProject } from "@/components/ProjectContext";
+import { useToast } from "@/hooks/useToast";
 import { useParams, useRouter } from "next/navigation";
 interface FileCardProps {
     file_name: string;
@@ -24,6 +25,7 @@ const FileCard: FC<FileCardProps> = ({ file_name, file_content, file_size, file_
   const { editing, setEditing, editMode, setEditMode } = useProject();
   const { id } = useParams();
   const router = useRouter();
+  const toast = useToast();
   const getFileIcon = () => {
 
     if (file_content.includes("pdf")) return <FileText className="h-12 w-12 text-red-500" />
@@ -33,6 +35,7 @@ const FileCard: FC<FileCardProps> = ({ file_name, file_content, file_size, file_
     return <FileIcon className="h-12 w-12 text-blue-500" />
   }
   const handleDelete = async () => {
+    try {
     const response = await fetch(`/api/storage`, {
       method: 'DELETE',
       body: JSON.stringify({
@@ -41,11 +44,23 @@ const FileCard: FC<FileCardProps> = ({ file_name, file_content, file_size, file_
       })
     })
     if (response.ok) {
+      toast.success('קובץ נמחק בהצלחה', 'קובץ נמחק בהצלחה', 3000);
       router.refresh();
     }
-    console.log(response);
+    else {
+      toast.error('שגיאה במחיקת קובץ', 'שגיאה במחיקת קובץ', 3000);
+    }
+  }
+  catch (error) {
+    if(error instanceof Error) {
+      toast.error('שגיאה במחיקת קובץ', error.message, 3000);
+    }
+    else {
+      toast.error('שגיאה במחיקת קובץ', 'שגיאה במחיקת קובץ', 3000);
+    }
   }
 
+  }
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return bytes + " bytes"
     else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB"

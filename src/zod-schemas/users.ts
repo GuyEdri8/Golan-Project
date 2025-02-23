@@ -1,6 +1,7 @@
 // types.ts
 export interface User {
     id: string
+    kinde_id: string
     email: string
     first_name: string
     last_name: string

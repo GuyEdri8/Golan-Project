@@ -12,6 +12,8 @@ import { getProjectLogs } from '@/lib/queries/logs/getProjectLogs'
 import { he } from 'date-fns/locale/he'
 import { ProjectLogInfiniteScroll } from './ProjectLogInfiniteScroll'
 import { EditButton } from './EditButton'
+import ExportFile from './exportFile'
+import FastActions from './FastActions'
 type Props = {
   project: getProjectProp
 }
@@ -24,20 +26,16 @@ export async function Sidebar({project}: Props) {
   const initialLogs = await getProjectLogs(project.id, 5, 0);
   return (
     <div className="w-full space-y-6">
-      <Card>
+      <Card className='hidden md:block'>
         <CardHeader>
           <CardTitle>פעולות מהירות</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
           <EditButton />
           <FileUploadDialog project_id={project.id}/>
-          <Button className="w-full justify-start">
-            <Share2 className="ml-2 h-4 w-4" />
-            שתף פרויקט
-          </Button>
+          <ExportFile project={project} />
         </CardContent>
       </Card>
-
       <Card>
         <CardHeader>
           <CardTitle>התקדמות הפרויקט</CardTitle>

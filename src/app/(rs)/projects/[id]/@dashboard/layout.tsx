@@ -15,7 +15,7 @@ export default function DashboardLayout({
 }>) {
     return (
         <>
-            <div className="grid grid-cols-2 h-full gap-4 w-full">
+            <div className="grid grid-cols-1 md:grid-cols-2 h-full gap-4 w-full">
                 {content}
                 {teammemebers}
                 {contact}

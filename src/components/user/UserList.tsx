@@ -2,23 +2,26 @@ import { useUsers } from "@/hooks/useUsers"
 import { InvitedUser } from "@/zod-schemas/users"
 import { Button } from "../ui/button"
 import { UserListItem } from "./UserListItem"
+import {useKindeBrowserClient} from "@kinde-oss/kinde-auth-nextjs";
 
 export function UserList({ 
     search, 
     selectedUsers, 
-    onUserSelect 
+    onUserSelect,
+    avoidSelf,
   }: {
     search: string
     selectedUsers: InvitedUser[]
     onUserSelect: (user: InvitedUser) => void
-
+    avoidSelf?: string
   }) {
+    console.log(avoidSelf);
     const { users, loading, hasMore, loadMore } = useUsers(search)
     if (loading && users.length === 0) {
       return <UserListSkeleton />
     }
 
-  
+    const filteredUsers = avoidSelf ? users.filter(user => user.kinde_id !== avoidSelf) : users
     return (
       <div className="space-y-4 max-h-[240px] overflow-y-auto border-2 rounded-md border-gray-200 p-3">
         {users.length === 0 && (
@@ -26,7 +29,7 @@ export function UserList({
             אין משתמשים שמתאימים לחיפוש
           </p>
         )}
-        {users.map((user) => (
+        {filteredUsers.map((user) => (
           <UserListItem
             key={user.id}
             user={user}

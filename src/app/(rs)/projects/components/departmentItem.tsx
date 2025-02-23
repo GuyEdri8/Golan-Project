@@ -1,4 +1,3 @@
-
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import Link from 'next/link'
 
@@ -12,8 +11,9 @@ type fundingSourceType = {
 type Props = {
     department: fundingSourceType
     selectedDepartment: number
+    handleItemSelection: (id: number) => void
 }
-export default function DepartmentItem({department, selectedDepartment} : Props) {
+export default function DepartmentItem({department, selectedDepartment, handleItemSelection} : Props) {
     return (                                      
         <Link href={{
           pathname: '/projects',

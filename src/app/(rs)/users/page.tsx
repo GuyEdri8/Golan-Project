@@ -30,9 +30,11 @@ export default async function Userspage({
   // Await the search parameters from the URL
   // const { pageSize, nextToken } = await searchParams;
   const {getPermissions, getUser} = getKindeServerSession();
-  const {permissions} = await getPermissions();
+  const permissionsResult = await getPermissions();
+  const permissions = permissionsResult ? permissionsResult.permissions : null;
+  const userResult = await getUser();
+  const {id} = userResult ? userResult : { id: null };
   const users = await getAllUsers();
-  const {id} = await getUser();
   // Fetch data using the provided tokens
   // const data: PropFetchUsers = await testGetUsersApi(pageSize, nextToken);
   return (
@@ -40,8 +42,8 @@ export default async function Userspage({
       <h2>רשימת משתמשים</h2>
       <UsersTable
         users={users}
-        id={id}
-        permissions={permissions}
+        id={id ?? ""}
+        permissions={permissions ?? []}
       />
     </>
   );

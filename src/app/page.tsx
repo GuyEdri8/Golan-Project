@@ -1,10 +1,11 @@
 
-
-
-export default function Home() {
+import Loading from "./loading"
+import { redirect } from "next/navigation";
+export default async function Home() {
+  await redirect("/home");
   return (
     <main>
-      <h1>דף הבית</h1>
+      <Loading />
     </main>
   );
 }
