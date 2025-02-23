@@ -2,12 +2,12 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from '@/components/ui/badge'
-import { Calendar, Search } from 'lucide-react'
+import { Calendar, Search, X } from 'lucide-react'
 import { format } from 'date-fns'
 import useDebounce from '@/hooks/useDebounce'
 import { Skeleton } from "@/components/ui/skeleton"
@@ -22,9 +22,12 @@ import { Button } from '@/components/ui/button'
 import { useWindowSize } from '@/hooks/useWindow'
 import { PaginationDemo } from '@/components/pagenation-component'
 import { useMediaQuery } from "@/hooks/useMediaQuery"
-import { SelectDepartment } from './components/selectdepartment'
+import { SelectDepartment, SelectFunder } from './components/selectdepartment'
+import FilterComponent from './components/filtercomponent'
+import { ComboboxPopover } from './components/popoverCombo'
 type Props = {
   prop_departments: any[]
+  prop_funding_sources: any[]
   prop_sort_by: ViewType
   prop_department_id?: number,
   prop_funder_id?: number,
@@ -33,7 +36,7 @@ type Props = {
 }
 type ViewType = "מחלקות" | "מקורות מימון" 
 
-export default function Home({ projects, prop_sort_by, prop_department_id, prop_funder_id, prop_departments, count }: Props) {
+export default function Home({ projects, prop_sort_by, prop_department_id, prop_funder_id, prop_departments, prop_funding_sources, count }: Props) {
   const router = useRouter()
   const [selectedProjects, setSelectedProjects] = useState<any[]>(projects ?? [])
   const [selectDepartment, setSelectedDepartment] = useState<number | null>((prop_sort_by === 'מחלקות') ? prop_department_id ?? null : prop_funder_id ?? null);
@@ -41,15 +44,28 @@ export default function Home({ projects, prop_sort_by, prop_department_id, prop_
   const [currentView, setCurrentView] = useState<ViewType>(prop_sort_by ?? 'מחלקות')
   const [loading, setLoading] = useState(false)
   const [departments, setDepartments] = useState(prop_departments);
+  const [fundingSources, setFundingSources] = useState(prop_funding_sources);
   const debouncedSearchTerm = useDebounce(searchDepartment, 500);
   const isMobile = useMediaQuery("(max-width: 1024px)");
-  
-
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const selectedDepartment = departments.find((department) => department.id === parseInt(prop_department_id ?? '0'));
+  const selectedFunder = fundingSources.find((funding) => funding.id === parseInt(prop_funder_id ?? '0'));
   // Improved view change handler
   const handleViewChange = (value: ViewType) => {
     router.push(`?prop_sort_by=${value}`);
     setCurrentView(value);
   }
+  const cancelDepartment = () => {
+    const params = new URLSearchParams(searchParams);
+    params.delete("department_id");
+    router.push(`${pathname}?${params.toString()}`);
+  };
+  const cancelFunder = () => {
+    const params = new URLSearchParams(searchParams);
+    params.delete("funder_id");
+    router.push(`${pathname}?${params.toString()}`);
+  };
 
   // Properly handle department selection and filtering
   useEffect(() => {
@@ -67,6 +83,8 @@ export default function Home({ projects, prop_sort_by, prop_department_id, prop_
     ) : filteredDepartments;
     setDepartments(departmentEmpty);
   }, [searchDepartment, prop_departments, currentView]);
+  console.log(prop_department_id, prop_funder_id)
+  console.log(departments, fundingSources)
 
   // Simplified department selection
   useEffect(() => {
@@ -79,17 +97,18 @@ export default function Home({ projects, prop_sort_by, prop_department_id, prop_
   useEffect(() => {
     setDepartments(prop_departments ?? []);
   }, [prop_departments])
-
+  useEffect(() => {
+    setFundingSources(prop_funding_sources ?? []);
+  }, [prop_funding_sources])
   useEffect(() => {
     setSelectedProjects(projects ?? []);
   }, [projects])
-  console.log(selectedProjects)
   return (
     <motion.section 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className='h-dvh grid grid-cols-1 md:grid-cols-3 bg-gray-50'
+      className='h-dvh relative grid grid-cols-1 md:grid-cols-3 bg-gray-50'
     >
       <article className='departments  flex-col overflow-hidden md:p-4 px-4 gap-2 bg-white shadow-lg hidden lg:flex'>
         <div className='flex flex-row-reverse justify-between'>
@@ -169,15 +188,18 @@ export default function Home({ projects, prop_sort_by, prop_department_id, prop_
           </Link>
         </div>
         <div className='relative mb-4'>
-          <GoogleSearchAutocomplete/>
-         {isMobile && 
-         <>
-         <h4 className='text-lg font-bold text-gray-800 mb-4'>מחלקה</h4>
-         <SelectDepartment departments={departments} selectedDep={prop_department_id ?? 0} />
-         </>
-        }
+          <div className='flex gap-2'>
+            <GoogleSearchAutocomplete/>
+          </div>
+          <div className='grid grid-cols-2 gap-2 md:hidden'>
+            <SelectDepartment departments={departments} selectedDep={prop_department_id ?? 0} />
+            <SelectFunder fundingSources={fundingSources} selectedDep={prop_funder_id ?? 0} />
+            <div className='flex gap-2'>
+              {selectedDepartment && <Badge onClick={cancelDepartment} variant='default' className='w-20 cursor-pointer'>{selectedDepartment?.department_name} <X className='mr-auto h-4 w-4'/></Badge>}
+              {selectedFunder && <Badge onClick={cancelFunder} variant="default" className='w-20 cursor-pointer'>{selectedFunder?.source_name} <X className='h-4 w-4'/></Badge>} 
+            </div>
+          </div>
         </div>
-
 
         <ScrollArea className='h-[500px] md:h-auto border-2 border-gray-200 rounded-lg'> 
           <AnimatePresence>

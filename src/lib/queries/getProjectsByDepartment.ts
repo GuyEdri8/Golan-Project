@@ -1,11 +1,27 @@
 import { db } from '@/db'
-import { projects, users, settlements, projectSettlements } from '@/db/schema'
-import { eq, count, inArray } from 'drizzle-orm'
+import { projects, users, settlements, projectSettlements, projectFundingSources } from '@/db/schema'
+import { eq, count, inArray, and } from 'drizzle-orm'
 import { sql } from 'drizzle-orm'
 import { validateProjectIds } from './projects/validateProjectIds'
 
-export async function getProjects(limit: number, offset: number) {
+// Main router function
+export async function getProjects(limit: number, offset: number, departmentId?: number, funderId?: number) {
+    if (departmentId && funderId) {
+        return getProjectsByDepartmentAndFunder(limit, offset, departmentId, funderId);
+    } 
+    else if (funderId) {
+        return getProjectsByFunder(limit, offset, funderId);
+    } 
+    else if (departmentId) {
+        return getProjectsByDepartmentC(limit, offset, departmentId);
+    }
+    else {
+        return getAllProjects(limit, offset);
+    }
+}
 
+// Function for getting projects by both department and funder
+async function getProjectsByDepartmentAndFunder(limit: number, offset: number, departmentId: number, funderId: number) {
     const projectsArr = await db
     .select({
             id: projects.id,
@@ -23,15 +39,130 @@ export async function getProjects(limit: number, offset: number) {
         owner: {
             firstName: users.first_name,
             lastName: users.last_name,
+        }
+    })
+    .from(projects)
+    .leftJoin(users, eq(projects.owner_id, users.id))
+    .leftJoin(projectFundingSources, eq(projects.id, projectFundingSources.project_id))
+    .where(and(eq(projects.department_id, departmentId), eq(projectFundingSources.id, funderId)))
+    .limit(limit)
+    .offset(offset)
+
+    const projectCount = await db.select({
+        count: count()
+    }).from(projects)
+    .leftJoin(projectFundingSources, eq(projects.id, projectFundingSources.project_id))
+    .where(and(eq(projects.department_id, departmentId), eq(projectFundingSources.id, funderId)))
+
+    return addSettlementsToProjects(projectsArr, projectCount[0].count);
+}
+
+// Function for getting projects by department only
+async function getProjectsByDepartmentC(limit: number, offset: number, departmentId: number) {
+    const projectsArr = await db
+    .select({
+        id: projects.id,
+        project_name: projects.project_name,
+        description: projects.description,
+        budget: projects.budget,
+        start_date: projects.start_date,
+        end_date: projects.end_date,
+        status: projects.status,
+        priority: projects.priority,
+        contact_email: projects.contact_email,
+        contact_phone: projects.contact_phone,
+        created_at: projects.created_at,
+        updated_at: projects.updated_at,
+        owner: {
+            firstName: users.first_name,
+            lastName: users.last_name,
+        },
+    })
+    .from(projects)
+    .leftJoin(users, eq(projects.owner_id, users.id))
+    .where(eq(projects.department_id, departmentId))
+    .limit(limit)
+    .offset(offset)
+
+    const projectCount = await db.select({
+        count: count()
+    }).from(projects)
+    .where(eq(projects.department_id, departmentId))
+
+    return addSettlementsToProjects(projectsArr, projectCount[0].count);
+}
+// Function for getting projects by funder only
+async function getProjectsByFunder(limit: number, offset: number, funderId: number) {
+    const projectsArr = await db
+    .select({
+        id: projects.id,
+        project_name: projects.project_name,
+        description: projects.description,
+        budget: projects.budget,
+        start_date: projects.start_date,
+        end_date: projects.end_date,
+        status: projects.status,
+        priority: projects.priority,
+        contact_email: projects.contact_email,
+        contact_phone: projects.contact_phone,
+        created_at: projects.created_at,
+        updated_at: projects.updated_at,
+        owner: {
+            firstName: users.first_name,
+            lastName: users.last_name,
+        },
+    })
+    .from(projects)
+    .leftJoin(users, eq(projects.owner_id, users.id))
+    .leftJoin(projectFundingSources, eq(projects.id, projectFundingSources.project_id))
+    .where(eq(projectFundingSources.funding_source_id, funderId))
+    .limit(limit)
+    .offset(offset)
+
+    const projectCount = await db.select({
+        count: count()
+    }).from(projects)
+    .leftJoin(projectFundingSources, eq(projects.id, projectFundingSources.project_id))
+    .where(eq(projectFundingSources.funding_source_id, funderId))
+
+    return addSettlementsToProjects(projectsArr, projectCount[0].count);
+}
+
+// Function for getting all projects
+async function getAllProjects(limit: number, offset: number) {
+    const projectsArr = await db
+    .select({
+        id: projects.id,
+        project_name: projects.project_name,
+        description: projects.description,
+        budget: projects.budget,
+        start_date: projects.start_date,
+        end_date: projects.end_date,
+        status: projects.status,
+        priority: projects.priority,
+        contact_email: projects.contact_email,
+        contact_phone: projects.contact_phone,
+        created_at: projects.created_at,
+        updated_at: projects.updated_at,
+        owner: {
+            firstName: users.first_name,
+            lastName: users.last_name,
         },
     })
     .from(projects)
     .leftJoin(users, eq(projects.owner_id, users.id))
     .limit(limit)
     .offset(offset)
+    const projectCount = await db.select({
+        count: count()
+    }).from(projects)
+    return addSettlementsToProjects(projectsArr, projectCount[0].count);
+}
 
-    // Get settlements separately for each project
-    const projectsWithSettlements = await Promise.all(
+// Helper function to add settlements to projects
+async function addSettlementsToProjects(projectsArr: any[], projectCount: number) {
+    
+    const data = await Promise.all(
         projectsArr.map(async (project) => {
             const arrSettlements = await db
                 .select({
@@ -52,8 +183,19 @@ export async function getProjects(limit: number, offset: number) {
             }
         })
     )
+    return {
+        data: data,
+        count: projectCount
+    }
+}
 
-    return projectsWithSettlements
+// Helper function to get project count
+async function getProjectCount(projectsArr: any[]) {
+    if (!projectsArr.length) return 0;
+    const result = await db
+        .select({ count: count() })
+        .from(projects)
+    return result[0].count;
 }
 
 export async function getProjectsCount() {

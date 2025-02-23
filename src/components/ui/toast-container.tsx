@@ -36,14 +36,13 @@ export const ToastContainer = () => {
   }, [toasts, removeToast]);
 
   return (
-    
-    <div className="fixed bottom-4 left-4 h-[200px] overflow-hidden p-2 z-50 flex flex-col gap-2">
+    <div className="fixed bottom-4 left-1/2 md:left-4 -translate-x-1/2 md:translate-x-0 h-[100px] md:h-[200px] overflow-hidden p-2 z-50 flex flex-col gap-2">
         <AnimatedList>
-        {toasts.map((toast) => (
-            <Notification  key={toast.id} id={toast.id} onDelete={removeToast} name={toast.name} description={toast.description} icon={toast.icon} color={typeToColor[toast.color as keyof typeof typeToColor]} time={toast.time} />
-        ))}
-    </AnimatedList>
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-background"></div>
+          {toasts.map((toast) => (
+              <Notification  key={toast.id} id={toast.id} onDelete={removeToast} name={toast.name} description={toast.description} icon={toast.icon} color={typeToColor[toast.color as keyof typeof typeToColor]} time={toast.time} />
+          ))}
+        </AnimatedList>
+     {toasts.length > 0 && <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-background"></div>}
     </div>
   );
 };

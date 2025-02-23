@@ -79,7 +79,6 @@ export default async function ProjectSettings({params}: {params: {id: string}}) 
     const boundUpdateDepartments = updateProjectDepartments.bind(null, Number(id));
     const boundUpdateStatus = updateProjectStatus.bind(null, Number(id));
     return (
-        <ScrollArea className="h-full w-full">
             <div dir="rtl" className="flex overflow-y-hidden flex-col gap-4 pb-4">
                 <ProjectNameCard 
                     initialName={projectData?.project_name} 
@@ -91,7 +90,7 @@ export default async function ProjectSettings({params}: {params: {id: string}}) 
                     onUpdate={boundUpdateBudget}
                 />
 
-                <div className="flex gap-4 justify-between w-full">
+                <div className="flex flex-col md:flex-row gap-4 justify-between w-full">
                     <ProjectDepartmentsCard 
                         currentDepartment={projectData?.department_id.toString()}
                         departments={departments}
@@ -107,6 +106,5 @@ export default async function ProjectSettings({params}: {params: {id: string}}) 
                     project_name={projectData?.project_name}
                 />
             </div>
-        </ScrollArea>
     )
 }

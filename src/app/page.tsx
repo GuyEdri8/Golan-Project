@@ -1,6 +1,8 @@
 
 import Loading from "./loading"
-export default function Home() {
+import { redirect } from "next/navigation";
+export default async function Home() {
+  await redirect("/home");
   return (
     <main>
       <Loading />

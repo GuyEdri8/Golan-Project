@@ -167,7 +167,25 @@ export function DataTable<TData, TValue>({
           placeholder={"חפש " + label}
         /> */}
       </div>
-    <div className="rounded-md border">
+    <div className="mobile-table block md:hidden">
+          <article className="flex flex-col gap-2">
+            {table.getRowModel().rows.map((row) => (
+              <div key={row.id} className="border border-block rounded-md p-2 grid ">
+                {/* {row.getVisibleCells().map(cell => (
+                  <p key={cell.id}>{cell.column.id}</p>
+                ))} */}
+                {row.getVisibleCells().map((cell) => (
+                  cell.column.columnDef.meta?.hidden ? (null) : (
+                    <div key={cell.id} className={cell.column.id === 'actions' ? 'flex justify-end -order-1' : ''}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </div>
+                  )
+                ))}
+              </div>
+            ))}
+          </article>
+    </div>
+    <div className="rounded-md border hidden md:block">
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (

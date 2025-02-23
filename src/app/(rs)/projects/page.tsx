@@ -18,52 +18,56 @@ export default async function ProjectDirectionPage ({
     const currentSorting = (prop_sort_by ?? 'מחלקות')
     const pageSize = parseInt(page_size ?? '5');
     const pageNumber = parseInt(page_number ?? '1');
-
-    if(funder_id)
-    {
-        return(
-            <Suspense>
-                <ProjectFundingSources funder_id={funder_id}/>
-            </Suspense>
-        )
-    }
-    else {
-        if(department_id)
-        {
-            const departments: Array<any> =  await getAllDepartmentsWithCount();
-            const proejctsFromDepartments = await getProjectsByDepartmentAndSettlement(department_id, pageSize, (pageNumber - 1) * pageSize);
-            const count = await getProjectsByDepartmentAndSettlementCount(department_id);
-            console.log(proejctsFromDepartments, count)
-            if(!proejctsFromDepartments)
-            {
-                return <ProjectPage prop_sort_by={'מחלקות'} projects={[]} prop_departments={proejctsFromDepartments} count={0}/>
-            }
-            if(proejctsFromDepartments)
-            {
-                return (
-                    <Suspense>
+    const projects = await getProjects(
+        pageSize, 
+        (pageNumber - 1) * pageSize, 
+        (department_id ? parseInt(department_id) : undefined), 
+        (funder_id ? parseInt(funder_id) : undefined)
+    ) ?? [];
+    return (
+        <Suspense>
+            <ProjectsDepartments currentSorting={currentSorting} projects={projects.data} count={projects.count} department_id={department_id ?? ''} funder_id={funder_id ?? ''}/>
+        </Suspense>
+    )
+    // if(funder_id)
+    // {
+    //     return(
+    //         <Suspense>
+    //             <ProjectFundingSources funder_id={funder_id}/>
+    //         </Suspense>
+    //     )
+    // }
+    // else {
+    //     if(department_id)
+    //     {
+    //         const departments: Array<any> =  await getAllDepartmentsWithCount();
+    //         const proejctsFromDepartments = await getProjectsByDepartmentAndSettlement(department_id, pageSize, (pageNumber - 1) * pageSize);
+    //         const count = await getProjectsByDepartmentAndSettlementCount(department_id);
+    //         console.log(proejctsFromDepartments, count)
+    //         if(!proejctsFromDepartments)
+    //         {
+    //             return <ProjectPage prop_sort_by={'מחלקות'} projects={[]} prop_departments={proejctsFromDepartments} count={0}/>
+    //         }
+    //         if(proejctsFromDepartments)
+    //         {
+    //             return (
+    //                 <Suspense>
     
-                        <ProjectPage prop_sort_by={'מחלקות'} prop_department_id={parseInt(department_id)} projects={proejctsFromDepartments} prop_departments={departments} count={count}/>
+    //                     <ProjectPage prop_sort_by={'מחלקות'} prop_department_id={parseInt(department_id)} projects={proejctsFromDepartments} prop_departments={departments} count={count}/>
                         
-                    </Suspense>
-                )
-            }
-        }
+    //                 </Suspense>
+    //             )
+    //         }
+    //     }
 
-        const projects = await getProjects(pageSize, (pageNumber - 1) * pageSize) ?? [];
-        const count = await getProjectsCount();
-        console.log(count)
-        return (
-            <Suspense>
-                <ProjectsDepartments currentSorting={currentSorting} projects={projects} count={count}/>
-            </Suspense>
-        )
-    }
+
+    // }
 }
 
-async function ProjectsDepartments({currentSorting, projects, count} : {currentSorting : string, projects : Array<any>, count : number}) {
+async function ProjectsDepartments({currentSorting, projects, count, department_id, funder_id} : {currentSorting : string, projects : Array<any>, count : number, department_id : string, funder_id : string}) {
     const elementsSortby: Array<any> =  (currentSorting === 'מחלקות') ? await getAllDepartmentsWithCount() : await getAllFundingSources(); // Get all Funding Soruces        
-
+    const getDepartments = await getAllDepartmentsWithCount();
+    const getFundingSources = await getAllFundingSources();
     if(!elementsSortby)
     {
         return (
@@ -74,7 +78,7 @@ async function ProjectsDepartments({currentSorting, projects, count} : {currentS
         )
     }   
     return (
-            <ProjectPage  prop_sort_by={currentSorting}  prop_departments={elementsSortby} projects={projects} count={count}/> 
+            <ProjectPage  prop_sort_by={currentSorting}  prop_departments={getDepartments} prop_department_id={department_id} prop_funder_id={funder_id} prop_funding_sources={getFundingSources} projects={projects} count={count}/> 
     )
 }
 
@@ -109,39 +113,3 @@ async function ProjectFundingSources({funder_id} : {funder_id : string}) {
         }
     }
 }
-
-// import { getAllDepartments } from "@/lib/queries/getAllDepartments";
-// import { BackButton } from "@/components/BackButton";
-
-// export default async function CustomerFormPage({
-//     searchParams,
-// }: {
-//     searchParams: Promise<{[key: string] : string | undefined}>
-// })
-// {
-//     try {
-//         const { customerId } = await searchParams;
-//         // Edit customer form
-//         if(customerId)
-//         {
-//             const customer = await getCustomer(parseInt(customerId));
-//             if(!customer)
-//             {
-//                 return (
-//                     <>
-//                         <h2 className="text-2xl mb-2"> Customer ID #{customerId} not found</h2>
-//                         <BackButton title="Go Back" variant={'default'}/>
-//                     </>
-//                 )
-//             }
-//             // put customer form component
-//         } else {
-//             // new customer form component
-//         }
-//     } catch (error) {
-//         if( error instanceof Error )
-//         {
-//             throw error;
-//         }
-//     }
-// }

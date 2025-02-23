@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { format } from 'date-fns'
 import { statusNames } from "@/zod-schemas/projects";
 import { redirect } from "next/navigation";
+import FastActions from "../components/FastActions";
 export default async function ProjectHeader({
     params,
   }: {
@@ -28,13 +29,16 @@ export default async function ProjectHeader({
       return (
         <>
           <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
-          <div>
+          <div className="w-full">
               <Link href="/projects" className="flex items-center text-blue-600 hover:text-blue-800 mb-2 sm:mb-0">
               <ArrowRight className="ml-2 h-4 w-4" />
               חזרה לפרויקטים
               </Link>
-              <h1 className="text-3xl font-bold text-gray-800">{project.project_name}</h1>
-          </div>
+              <div className="flex items-center justify-between w-full gap-2">
+                <h1 className="text-3xl font-bold text-gray-800">{project.project_name}</h1>
+                <FastActions project={project} />
+              </div>
+            </div>
           </header>
           <section className="bg-white rounded-lg shadow p-6 flex flex-wrap justify-between items-center gap-4">
               <Badge variant="secondary" className={`${statusColor}`}>{statusNames[project.status]}</Badge> 

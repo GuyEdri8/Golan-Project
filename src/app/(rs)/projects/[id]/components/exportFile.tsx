@@ -114,14 +114,12 @@ const exportProject = async (project: getProjectProp) => {
     }
 };
 
-export default function ExportFile({project}: {project: getProjectProp}) {
+export default function ExportFile({project, mobile}: {project: getProjectProp, mobile?: boolean}) {
 
     return (
-        <div>
-            <Button onClick={() => exportProject(project)}>
-                <Download className="mr-2 h-4 w-4" />
-                Export
-            </Button>
-        </div>
+        <Button variant={mobile ? "outline" : "default"} className={`flex justify-start ${mobile ? "md:hidden" : ""}`} onClick={() => exportProject(project)}>
+            <Download className="mr-2 h-4 w-4" />
+            יצוא קובץ לאקסל
+        </Button>
     )
 }

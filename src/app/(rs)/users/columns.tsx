@@ -31,11 +31,14 @@ export const columns: ColumnDef<User>[] = [
         accessorKey: "picture",
         header: () => <div className="text-right">אוואטר</div>,
         cell: ({ row }) => (
-            <div className="flex justify-start">
+            <div className="flex justify-start items-center gap-4">
                 <Avatar>
                     <AvatarImage src={row.original.picture} />
                     <AvatarFallback>{row.original.first_name.charAt(0).toUpperCase() + row.original.last_name.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
+                <div className="block md:hidden font-bold">
+                    {row.original.first_name} {row.original.last_name}
+                </div>
             </div>
         ),
         filterFn: 'includesString',
@@ -55,7 +58,7 @@ export const columns: ColumnDef<User>[] = [
             )
         },
         cell: ({ row }) => (
-            <div className="text-right font-semibold">
+            <div className="text-right font-semibold hidden md:block">
                 {row.original.first_name} {row.original.last_name}
             </div>
         ),
