@@ -12,7 +12,7 @@ export async function getTopFundingSources() {
         .from(projectFundingSources)
         .leftJoin(fundingSources, eq(fundingSources.id, projectFundingSources.funding_source_id))
         .leftJoin(projects, eq(projects.id, projectFundingSources.project_id))
-        .where(inArray(projects.status, ['פעיל', 'תכנון', 'מעוכב']))
+        .where(inArray(projects.status, ['1', '2', '3']))
         .groupBy(fundingSources.id, fundingSources.source_name)
         .orderBy(sql`SUM(${projectFundingSources.allocated_amount}) DESC`)
         .limit(6);
