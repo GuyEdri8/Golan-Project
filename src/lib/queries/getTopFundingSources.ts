@@ -1,21 +1,25 @@
-/*import { db } from '@/db'
-import { projects, funding_sources, project_funding_sources } from '@/db/schema'
+import { db } from '@/db'
+import { projects, fundingSources, projectFundingSources } from '@/db/schema'
 import { sql } from 'drizzle-orm'
 import { eq, and, or, inArray } from 'drizzle-orm'
 
 export async function getTopFundingSources() {
     const result = await db
         .select({
-            source_name: funding_sources.source_name,
-            total_amount: sql<number>`SUM(${project_funding_sources.allocated_amount})`
+            source_name: sql<string>`COALESCE(${fundingSources.source_name}, 'ללא מקור')`,  // Handle null values
+            total_amount: sql<number>`COALESCE(SUM(${projectFundingSources.allocated_amount}), 0)`
         })
-        .from(project_funding_sources)
-        .leftJoin(funding_sources, eq(funding_sources.id, project_funding_sources.funding_source_id))
-        .leftJoin(projects, eq(projects.id, project_funding_sources.project_id))
+        .from(projectFundingSources)
+        .leftJoin(fundingSources, eq(fundingSources.id, projectFundingSources.funding_source_id))
+        .leftJoin(projects, eq(projects.id, projectFundingSources.project_id))
         .where(inArray(projects.status, ['פעיל', 'תכנון', 'מעוכב']))
-        .groupBy(funding_sources.id, funding_sources.source_name)
-        .orderBy(sql`SUM(${project_funding_sources.allocated_amount}) DESC`)
+        .groupBy(fundingSources.id, fundingSources.source_name)
+        .orderBy(sql`SUM(${projectFundingSources.allocated_amount}) DESC`)
         .limit(6);
 
-    return result;
-}*/
+    // Ensure we never return null values
+    return result.map(item => ({
+        source_name: item.source_name || 'ללא מקור',
+        total_amount: item.total_amount || 0
+    }));
+}

@@ -317,7 +317,6 @@ export async function getProjectsByDepartmentAndSettlement(departmentId: string,
 
     return Object.values(groupedProjects);
 }
-
 export async function getProjectsByIds(projectIds: number[]) {
     try {
         const validatedProjectIds = await validateProjectIds(projectIds);

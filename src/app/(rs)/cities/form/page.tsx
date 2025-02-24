@@ -1,7 +1,9 @@
 import { getSettlementstatisics } from "@/lib/queries/getSettlementStatistics";
+import { getYearlyProjects } from "@/lib/queries/projects/getYearlyProjects";
 import { BackButton } from "@/components/BackButton";
 import CityPage from '@/components/CityPage';
 import { getSettlement } from "@/lib/queries/getSettlement";
+
 export default async function SettlementStatisicsFormPage({
     searchParams,
 }: {
@@ -15,6 +17,7 @@ export default async function SettlementStatisicsFormPage({
         {
             const settlement = await getSettlement(parseInt(settlement_id));
             const settle_statisitcs = await getSettlementstatisics(parseInt(settlement_id));
+            const yearlyProjects = await getYearlyProjects(parseInt(settlement_id));
             if(!settle_statisitcs)
             {
                 return (
@@ -25,7 +28,11 @@ export default async function SettlementStatisicsFormPage({
                 )
             }
             //@type
-            return <CityPage settlement_statistics={settle_statisitcs as any} settlement={settlement as any}/>
+            return <CityPage 
+            settlement_statistics={settle_statisitcs as any} 
+            settlement={settlement as any}
+            projects={yearlyProjects as any}
+            />
             // put customer form component
         } else {
             // new customer form component
