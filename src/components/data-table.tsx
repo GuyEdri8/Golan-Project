@@ -185,7 +185,7 @@ export function DataTable<TData, TValue>({
             ))}
           </article>
     </div>
-    <div className="rounded-md border hidden md:block">
+    <div className="rounded-md border">
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -228,23 +228,27 @@ export function DataTable<TData, TValue>({
           )}
         </TableBody>
       </Table>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
+      <div className="flex flex-col sm:flex-row items-center justify-between sm:justify-end space-y-2 sm:space-y-0 sm:space-x-2 py-4 rtl:space-x-reverse">
+        <div className="flex w-full sm:w-auto justify-between sm:justify-end space-x-2 rtl:space-x-reverse">
+          <Button
+            variant="outline"
+            size="sm"
+            className="px-3 py-2 text-sm min-w-20"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
           >
-          הקודם
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
+            הקודם
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="px-3 py-2 text-sm min-w-20"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
           >
-          המשך
-        </Button>
+            המשך
+          </Button>
+        </div>
       </div>
     </div>
     </>

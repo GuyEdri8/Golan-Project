@@ -18,10 +18,10 @@ export default async function Home() {
     const userResult = await getUser();
     const user = userResult ? userResult : { id: null };
 
-    const activeProjects = await getProjectsByStatus('פעיל');
-    const completedProjects = await getProjectsByStatus('הושלם');
-    const plannedProjects = await getProjectsByStatus('תכנון');
-    const delayedProjects = await getProjectsByStatus('מעוכב');
+    const activeProjects = await getProjectsByStatus('1');          // פעיל
+    const plannedProjects = await getProjectsByStatus('2');         // בתכנון
+    const delayedProjects = await getProjectsByStatus('3');         // מעוכב
+    const completedProjects = await getProjectsByStatus('4');       // הושלם
 
     console.log('User ID:', user.id);
     const monthData = await getMonthlyProjects(user?.id || '');
@@ -102,7 +102,7 @@ export default async function Home() {
   );
   
     return <HomeComponent 
-      firstName={user?.given_name || 'Guest'}
+      firstName={userResult?.given_name || 'Guest'}
       activeProjects={activeProjects}
       completedProjects={completedProjects}
       plannedProjects={plannedProjects}

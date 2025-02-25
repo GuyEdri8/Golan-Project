@@ -11,7 +11,7 @@ export async function getTopDepartments() {
         })
         .from(projects)
         .leftJoin(departments, eq(departments.id, projects.department_id))
-        .groupBy(departments.department_name)  // Changed to group only by department_name
+        .groupBy(departments.department_name)
         .orderBy(sql`count(${projects.id}) DESC`)
         .limit(6);
 
