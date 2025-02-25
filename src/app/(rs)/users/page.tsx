@@ -2,6 +2,8 @@
 import { getAllUsers } from "@/lib/queries/users/getAllUsers";
 import UsersTable from "./userstable";
 import {getKindeServerSession} from "@kinde-oss/kinde-auth-nextjs/server";
+import Loading from "@/app/loading";
+import { Suspense } from "react";
 type PropUser = {
   id: string;
   email: string;
@@ -22,29 +24,31 @@ type PropFetchUsers = {
   next_token: string | null;
 };
 
-export default async function Userspage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | undefined }>;
-}) {
-  // Await the search parameters from the URL
-  // const { pageSize, nextToken } = await searchParams;
+export const metadata = {
+  title: 'רשימת משתמשים',
+}
+
+export default async function Userspage() {
+  return (
+    <Suspense fallback={<Loading/>}> 
+      <FetchUsers />
+    </Suspense>
+  );
+}
+async function getPermissions() {
   const {getPermissions, getUser} = getKindeServerSession();
   const permissionsResult = await getPermissions();
   const permissions = permissionsResult ? permissionsResult.permissions : null;
   const userResult = await getUser();
   const {id} = userResult ? userResult : { id: null };
+  return {permissions, id};
+}
+async function FetchUsers() {
+  const {permissions, id} = await getPermissions();
   const users = await getAllUsers();
-  // Fetch data using the provided tokens
-  // const data: PropFetchUsers = await testGetUsersApi(pageSize, nextToken);
-  return (
-    <>
-      <h2>רשימת משתמשים</h2>
-      <UsersTable
-        users={users}
-        id={id ?? ""}
-        permissions={permissions ?? []}
-      />
-    </>
-  );
+  
+  return <>
+    <h2>רשימת משתמשים</h2>
+    <UsersTable users={users} id={id ?? ""} permissions={permissions ?? []} />
+  </>
 }

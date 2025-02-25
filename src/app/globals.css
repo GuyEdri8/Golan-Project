@@ -110,7 +110,10 @@ body {
   color: hsl(var(--primary));
 }
 
-
+.rtl-dialog {
+    direction: rtl;
+    text-align: right;
+}
 
 @media print {
    /* Ensure background colors and images print */
